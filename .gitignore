@@ -1,0 +1,81 @@
+# BMAD Internal Workflow (keep private)
+.bmad/
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+
+# FastAPI / Python
+.env
+.env.local
+*.db
+*.sqlite3
+
+# FAISS Indexes
+*.faiss
+*.index
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode / iOS
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+Packages/
+Package.resolved
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+
+# Secrets
+secrets.yaml
+credentials.json
+.api_keys
