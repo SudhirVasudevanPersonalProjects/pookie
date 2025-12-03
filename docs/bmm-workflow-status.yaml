@@ -42,10 +42,11 @@ workflow_status:
 
       - id: "product-brief"
         name: "Product Brief"
-        status: "skipped"
+        status: "docs/analysis/product-brief-Pookie-2025-12-02.md"
         agent: "analyst"
         command: "/bmad:bmm:workflows:product-brief"
-        note: "Not selected during init"
+        note: "Complete! First-person POV, free-tier ML system, 8-week timeline"
+        completed: "2025-12-02"
 
   # Phase 1: Planning
   - phase: 1
