@@ -30,11 +30,11 @@ Pookie is an ML-powered personal knowledge management system with four core func
    - Interactive refinement chat ("split differently", "combine these")
    - Storage of individual separated thoughts as discrete entities
 
-2. **Semantic Clustering (Abodes)**
-   - Automatic grouping of related thoughts into thematic "abodes" using vector similarity
+2. **Semantic Clustering (Circles)**
+   - Automatic grouping of related thoughts into thematic "circles" using vector similarity
    - LLM-generated naming for discovered clusters
    - Dynamic reorganization as new thoughts are added
-   - Knowledge graph structure tracking relationships between abodes
+   - Knowledge graph structure tracking relationships between circles
 
 3. **Personalized Discovery (Discover Mode)**
    - Taste profile learning from saved content
@@ -170,7 +170,7 @@ Architecture Addition: Knowledge graph layer
 Storage: Graph structure in Supabase (nodes=thoughts, edges=relationships)
 
 Graph Construction:
-- Nodes: Individual thoughts + abodes
+- Nodes: Individual thoughts + circles
 - Edges: Semantic similarity, temporal proximity, explicit user links
 - Metadata: Importance scores, novelty rankings, timestamps
 
@@ -182,7 +182,7 @@ Retrieval Strategy:
 
 Example Query: "What do I care about?"
 - Naive RAG: Returns top-5 thoughts with "care" keyword
-- Graph RAG: Returns central nodes in knowledge graph (high-degree thoughts that connect many abodes)
+- Graph RAG: Returns central nodes in knowledge graph (high-degree thoughts that connect many circles)
 
 Expected Gains:
 - RAG accuracy: 85% → 90-95%
@@ -203,7 +203,7 @@ Agents:
 
 Example: "What should I focus on this week?"
 - Query Planner: Break into "what do I care about?" + "what actions align?" + "what's urgent?"
-- Retrieval Agent: Search abodes, recent thoughts, goal-related thoughts
+- Retrieval Agent: Search circles, recent thoughts, goal-related thoughts
 - Reasoning Agent: Synthesize priorities
 - Reflection Agent: Check if response is actionable
 
@@ -257,7 +257,7 @@ Expected Gains:
 
 - Single user (personal app)
 - <100k thoughts initially
-- <1000 abodes
+- <1000 circles
 - Local-first with cloud backup
 
 ### Cross-Cutting Concerns Identified
@@ -407,16 +407,16 @@ Pookie/
 │   └── Supabase.swift (client initialization)
 ├── Models/
 │   ├── Thought.swift
-│   ├── Abode.swift
+│   ├── Circle.swift
 │   └── User.swift
 ├── ViewModels/
 │   ├── CaptureViewModel.swift
-│   ├── AbodeViewModel.swift
+│   ├── CircleViewModel.swift
 │   ├── DiscoverViewModel.swift
 │   └── ChatViewModel.swift
 ├── Views/
 │   ├── Capture/
-│   ├── Abodes/
+│   ├── Circles/
 │   ├── Discover/
 │   └── Chat/
 ├── Services/
@@ -486,7 +486,7 @@ pookie-backend/
 │   │   ├── v1/
 │   │   │   ├── endpoints/
 │   │   │   │   ├── thoughts.py
-│   │   │   │   ├── abodes.py
+│   │   │   │   ├── circles.py
 │   │   │   │   ├── chat.py
 │   │   │   │   └── discover.py
 │   │   │   └── api.py (route aggregation)
@@ -495,10 +495,10 @@ pookie-backend/
 │   │   └── security.py (auth utilities)
 │   ├── models/
 │   │   ├── thought.py (SQLAlchemy models)
-│   │   └── abode.py
+│   │   └── circle.py
 │   ├── schemas/
 │   │   ├── thought.py (Pydantic schemas)
-│   │   └── abode.py
+│   │   └── circle.py
 │   ├── services/
 │   │   ├── embedding_service.py (sentence-transformers)
 │   │   ├── vector_service.py (FAISS operations)
@@ -578,10 +578,71 @@ pookie-backend/
 
 **Database Schema Management:**
 - **Approach:** SQLAlchemy ORM models + Alembic migrations
-- **Models:** `Thought`, `Abode`, `User` in `app/models/`
+- **Models:** `Thought`, `Circle`, `Intention`, `Story`, `IntentionCare` (junction table), `User` in `app/models/`
 - **Migrations:** Version controlled via Alembic
 - **Database:** Supabase PostgreSQL (free tier: 500MB)
 - **Rationale:** Type-safe Python models, easy to version, works with FastAPI starter template
+
+**Core Tables:**
+
+1. **users** - User profiles and vibe profile data
+   - `id` (UUID, PK)
+   - `email` (String)
+   - `created_at` (Timestamp)
+   - `vibe_profile` (JSONB) - Aggregated preference vector
+
+2. **thoughts** (captures) - Raw user inputs (Level 0)
+   - `id` (UUID, PK)
+   - `user_id` (UUID, FK → users)
+   - `thought_text` (Text)
+   - `embedding` (Vector) - 384-dim sentence-transformers vector
+   - `circle_id` (UUID, FK → circles, nullable)
+   - `created_at` (Timestamp)
+   - `updated_at` (Timestamp)
+
+3. **circles** (semantic clusters) - Thematic groupings (Level 1)
+   - `id` (UUID, PK)
+   - `user_id` (UUID, FK → users)
+   - `circle_name` (String)
+   - `care_frequency` (Integer) - Interaction count/frequency metric
+   - `created_at` (Timestamp)
+   - `updated_at` (Timestamp)
+   - Indexes: `idx_circles_user_id`
+
+4. **intentions** (action-oriented goals) - Level 2
+   - `id` (UUID, PK)
+   - `user_id` (UUID, FK → users)
+   - `intention_text` (Text)
+   - `status` (Enum: active, completed, archived)
+   - `created_at` (Timestamp)
+   - `updated_at` (Timestamp)
+   - Indexes: `idx_intentions_user_id`, `idx_intentions_status`
+
+5. **intention_cares** (junction table) - Many-to-many: intentions ↔ thoughts
+   - `id` (UUID, PK)
+   - `intention_id` (UUID, FK → intentions)
+   - `thought_id` (UUID, FK → thoughts)
+   - `created_at` (Timestamp)
+   - Composite index: `idx_intention_cares_intention_thought`
+   - Purpose: Links individual captures as "roots" to intentions (visual: arrow thickness)
+
+6. **stories** (completion log) - Level 3
+   - `id` (UUID, PK)
+   - `user_id` (UUID, FK → users)
+   - `story_text` (Text) - Description of completed action
+   - `intention_id` (UUID, FK → intentions, nullable)
+   - `completed_at` (Timestamp)
+   - `created_at` (Timestamp)
+   - Indexes: `idx_stories_user_id`, `idx_stories_intention_id`
+
+**Relationships:**
+- User → Thoughts (1:N)
+- User → Circles (1:N)
+- User → Intentions (1:N)
+- User → Stories (1:N)
+- Circle → Thoughts (1:N)
+- Intention ↔ Thoughts (N:M via intention_cares junction table)
+- Intention → Stories (1:N)
 
 **Data Flow:**
 ```
@@ -618,15 +679,35 @@ iOS → FastAPI → Supabase PostgreSQL (structured data)
 
 **API Design:**
 - **Standard Operations:** RESTful JSON APIs
-  - `POST /api/v1/thoughts` - Create thought
-  - `POST /api/v1/thoughts/separate` - Call Agents Mode (thought separation)
-  - `GET /api/v1/abodes` - List abodes
-  - `GET /api/v1/abodes/{id}/thoughts` - Get thoughts in abode
-  - `POST /api/v1/discover` - Get action recommendations
+  - **Thoughts (Captures):**
+    - `POST /api/v1/thoughts` - Create thought/capture
+    - `POST /api/v1/thoughts/separate` - Call Agents Mode (thought separation)
+    - `GET /api/v1/thoughts` - List thoughts
+  - **Circles (Level 1):**
+    - `GET /api/v1/circles` - List circles
+    - `GET /api/v1/circles/{id}/thoughts` - Get thoughts in circle
+    - `POST /api/v1/circles` - Create circle
+    - `PUT /api/v1/circles/{id}` - Update circle (rename, care_frequency)
+    - `DELETE /api/v1/circles/{id}` - Delete circle
+  - **Intentions (Level 2):**
+    - `GET /api/v1/intentions` - List intentions (with linked care counts)
+    - `POST /api/v1/intentions` - Create intention
+    - `PUT /api/v1/intentions/{id}` - Update intention (status, text)
+    - `DELETE /api/v1/intentions/{id}` - Delete intention
+    - `POST /api/v1/intentions/{id}/link-cares` - Link individual thoughts to intention
+    - `DELETE /api/v1/intentions/{id}/unlink-care/{thought_id}` - Unlink thought from intention
+  - **Stories (Level 3):**
+    - `GET /api/v1/stories` - List story timeline
+    - `POST /api/v1/stories` - Create story entry (log completed action)
+  - **Vibe Profile:**
+    - `GET /api/v1/vibe-profile` - Get user's vibe profile
+  - **Discover Mode:**
+    - `POST /api/v1/discover` - Get intention-aligned recommendations
 
 - **Streaming Operations:** Server-Sent Events (SSE)
-  - `POST /api/v1/chat/stream` - RAG chat with streaming response
+  - `POST /api/v1/chat/stream` - RAG chat with Pookie (streaming response)
   - Returns `StreamingResponse` with token-by-token LLM output
+  - Context includes: circles + intentions + vibe profile
 
 **iOS Implementation:**
 - Standard REST: `URLSession` with `async/await`
@@ -650,8 +731,11 @@ iOS → FastAPI → Supabase PostgreSQL (structured data)
   - Sync status
   - Network connectivity
 - **Screen ViewModels:**
-  - `CaptureViewModel` - Text/voice input, thought separation
-  - `AbodeViewModel` - Abode list, clustering
+  - `CaptureViewModel` - Text/voice input, thought separation (L0)
+  - `CircleViewModel` - Circle list, clustering (L1)
+  - `IntentionViewModel` - Intentions list, care linking, action management (L2)
+  - `StoryTimelineViewModel` - Story timeline display (L3)
+  - `ChamberViewModel` - 4-level hierarchy navigation (L0→L1→L2→L3)
   - `DiscoverViewModel` - Action recommendations
   - `ChatViewModel` - RAG chat interface
 
@@ -733,11 +817,11 @@ Pookie/
   - Prompt: Just the query
   - User sees indication: "General knowledge response"
 
-**Clustering (Abodes):**
+**Clustering (Circles):**
 - **Algorithm:** K-means or DBSCAN on embeddings
 - **Execution:** Background job after N new thoughts
-- **Naming:** LLM generates abode names based on cluster content
-- **Storage:** Abode metadata in Supabase, relationships in graph structure
+- **Naming:** LLM generates circle names based on cluster content
+- **Storage:** Circle metadata in Supabase, relationships in graph structure
 
 ---
 
@@ -792,7 +876,7 @@ Pookie/
 3. **ML Core:** sentence-transformers service, FAISS service, Supabase Storage persistence
 4. **API Layer:** REST endpoints, SSE streaming for chat
 5. **iOS Foundation:** AppState, Supabase client, Auth flow
-6. **Features:** Capture → Abodes → Discover → Chat (in order)
+6. **Features:** Capture → Circles → Discover → Chat (in order)
 7. **Modes:** Tag/Reflection/Novelty modes (sequential functions)
 8. **CI/CD:** GitHub Actions for backend
 
@@ -856,7 +940,7 @@ struct Thought: Codable {
 
 **Tables:**
 - **Pattern:** Plural nouns
-- **Examples:** `users`, `thoughts`, `abodes`, `embeddings`
+- **Examples:** `users`, `thoughts`, `circles`, `embeddings`
 
 **Columns:**
 - **Pattern:** `snake_case`
@@ -864,11 +948,11 @@ struct Thought: Codable {
 
 **Foreign Keys:**
 - **Pattern:** `{table_singular}_id`
-- **Examples:** `user_id`, `abode_id`, `thought_id`
+- **Examples:** `user_id`, `circle_id`, `thought_id`
 
 **Indexes:**
 - **Pattern:** `idx_{table}_{column(s)}`
-- **Examples:** `idx_thoughts_user_id`, `idx_thoughts_created_at`, `idx_abodes_user_id`
+- **Examples:** `idx_thoughts_user_id`, `idx_thoughts_created_at`, `idx_circles_user_id`
 
 **Constraints:**
 - **Pattern:** `{type}_{table}_{column}`
@@ -880,8 +964,8 @@ struct Thought: Codable {
 
 **Endpoint Structure:**
 - **Base:** `/api/v1/`
-- **Resources:** Plural nouns (`/thoughts`, `/abodes`)
-- **Parameters:** `{id}`, `{abode_id}`, `{thought_id}`
+- **Resources:** Plural nouns (`/thoughts`, `/circles`)
+- **Parameters:** `{id}`, `{circle_id}`, `{thought_id}`
 
 **Standard CRUD Endpoints:**
 ```
@@ -899,11 +983,11 @@ DELETE /api/v1/thoughts/{id}     # Delete thought
 | **Separate Thoughts** | AI-powered semantic boundary detection to split rambling paragraphs into distinct thoughts | `/api/v1/ml/separate-thoughts` | POST |
 | **RAG Chat** | Ask questions and converse with your personal knowledge using vector search + LLM | `/api/v1/chat/stream` | POST |
 | **Discover** | Explore new experiences using taste reasoning (RAG + LLM general knowledge) | `/api/v1/ml/discover` | POST |
-| **Link** | Chain-of-thought reasoning from your abodes to new concepts (explicit reasoning path) | `/api/v1/ml/link` | POST |
+| **Link** | Chain-of-thought reasoning from your circles to new concepts (explicit reasoning path) | `/api/v1/ml/link` | POST |
 | **Prioritize** | Rank existing thoughts/actions to decide what to do next | `/api/v1/ml/prioritize` | POST |
-| **List Abodes** | Get all thought clusters/contexts | `/api/v1/abodes` | GET |
-| **Add Thought to Abode** | Dynamically organize thoughts into clusters | `/api/v1/abodes/{abode_id}/thoughts` | POST |
-| **Remove Thought** | Remove thought from cluster | `/api/v1/abodes/{abode_id}/thoughts/{thought_id}` | DELETE |
+| **List Circles** | Get all thought clusters/contexts | `/api/v1/circles` | GET |
+| **Add Thought to Circle** | Dynamically organize thoughts into clusters | `/api/v1/circles/{circle_id}/thoughts` | POST |
+| **Remove Thought** | Remove thought from cluster | `/api/v1/circles/{circle_id}/thoughts/{thought_id}` | DELETE |
 
 **Action Detailed Descriptions:**
 
@@ -932,10 +1016,10 @@ DELETE /api/v1/thoughts/{id}     # Delete thought
 #### Code Naming Conventions
 
 **Swift (iOS):**
-- **Files:** PascalCase (`CaptureView.swift`, `ThoughtModel.swift`, `AbodeViewModel.swift`)
-- **Classes/Structs:** PascalCase (`CaptureViewModel`, `Thought`, `Abode`, `AppState`)
+- **Files:** PascalCase (`CaptureView.swift`, `ThoughtModel.swift`, `CircleViewModel.swift`)
+- **Classes/Structs:** PascalCase (`CaptureViewModel`, `Thought`, `Circle`, `AppState`)
 - **Functions/Variables:** camelCase (`fetchThoughts`, `userId`, `thoughtText`, `isLoading`)
-- **Constants:** camelCase (`maxThoughtLength`, `defaultAbodeName`, `apiBaseURL`)
+- **Constants:** camelCase (`maxThoughtLength`, `defaultCircleName`, `apiBaseURL`)
 - **Enums:** PascalCase with camelCase cases (`enum LoadingState { case idle, loading, success, failure }`)
 
 **Python (Backend):**
@@ -959,7 +1043,7 @@ pookie-backend/
 │   │   └── v1/
 │   │       ├── endpoints/
 │   │       │   ├── thoughts.py    # CRUD operations
-│   │       │   ├── abodes.py      # Abode management
+│   │       │   ├── circles.py      # Circle management
 │   │       │   ├── chat.py        # RAG chat streaming
 │   │       │   └── ml.py          # ML endpoints (separate, discover, link, prioritize)
 │   │       └── api.py             # Route aggregation
@@ -969,11 +1053,11 @@ pookie-backend/
 │   │   └── dependencies.py        # FastAPI dependencies
 │   ├── models/
 │   │   ├── thought.py             # SQLAlchemy ORM models
-│   │   ├── abode.py
+│   │   ├── circle.py
 │   │   └── user.py
 │   ├── schemas/
 │   │   ├── thought.py             # Pydantic request/response schemas
-│   │   ├── abode.py
+│   │   ├── circle.py
 │   │   └── chat.py
 │   ├── services/
 │   │   ├── embedding_service.py   # sentence-transformers
@@ -1007,20 +1091,20 @@ Pookie/
 │   └── AppState.swift            # Shared observable state
 ├── Models/
 │   ├── Thought.swift
-│   ├── Abode.swift
+│   ├── Circle.swift
 │   └── User.swift
 ├── ViewModels/
 │   ├── CaptureViewModel.swift
-│   ├── AbodeViewModel.swift
+│   ├── CircleViewModel.swift
 │   ├── DiscoverViewModel.swift
 │   └── ChatViewModel.swift
 ├── Views/
 │   ├── Capture/
 │   │   ├── CaptureView.swift
 │   │   └── SeparateThoughtsView.swift
-│   ├── Abodes/
-│   │   ├── AbodeListView.swift
-│   │   └── AbodeDetailView.swift
+│   ├── Circles/
+│   │   ├── CircleListView.swift
+│   │   └── CircleDetailView.swift
 │   ├── Discover/
 │   │   └── DiscoverView.swift
 │   └── Chat/
@@ -1049,7 +1133,7 @@ Pookie/
   "userId": 123,
   "thoughtText": "I want to get jacked",
   "createdAt": "2025-12-03T10:30:00Z",
-  "abodeId": 5
+  "circleId": 5
 }
 
 // GET /api/v1/thoughts (list)
@@ -1295,7 +1379,7 @@ def chat(query: str, user_id: int):
 ```python
 class ThoughtCreate(BaseModel):
     thought_text: str = Field(alias="thoughtText", min_length=1)
-    abode_id: Optional[int] = Field(alias="abodeId", default=None)
+    circle_id: Optional[int] = Field(alias="circleId", default=None)
 ```
 
 ✅ **Swift Model (Native camelCase):**
@@ -1430,11 +1514,11 @@ This architecture document provides comprehensive guidance for AI agents and dev
 | 1 | **Separate Thoughts** | AI semantic boundary detection for rambling brain dumps | `/api/v1/ml/separate-thoughts` | POST |
 | 2 | **RAG Chat** | Converse with personal knowledge (streaming) | `/api/v1/chat/stream` | POST |
 | 3 | **Discover** | Explore new experiences using taste reasoning | `/api/v1/ml/discover` | POST |
-| 4 | **Link** | Chain-of-thought reasoning from abodes to new concepts | `/api/v1/ml/link` | POST |
+| 4 | **Link** | Chain-of-thought reasoning from circles to new concepts | `/api/v1/ml/link` | POST |
 | 5 | **Prioritize** | Rank existing thoughts/actions for decision-making | `/api/v1/ml/prioritize` | POST |
-| 6 | **List Abodes** | Get all thought clusters/contexts | `/api/v1/abodes` | GET |
-| 7 | **Add Thought to Abode** | Organize thought into cluster | `/api/v1/abodes/{abode_id}/thoughts` | POST |
-| 8 | **Remove Thought** | Remove thought from cluster | `/api/v1/abodes/{abode_id}/thoughts/{thought_id}` | DELETE |
+| 6 | **List Circles** | Get all thought clusters/contexts | `/api/v1/circles` | GET |
+| 7 | **Add Thought to Circle** | Organize thought into cluster | `/api/v1/circles/{circle_id}/thoughts` | POST |
+| 8 | **Remove Thought** | Remove thought from cluster | `/api/v1/circles/{circle_id}/thoughts/{thought_id}` | DELETE |
 
 ---
 
@@ -1485,7 +1569,7 @@ This architecture document provides comprehensive guidance for AI agents and dev
 3. Initialize Git, .gitignore, README
 
 **Foundation (Story 1-3):**
-4. Supabase schema (Alembic migrations for users, thoughts, abodes)
+4. Supabase schema (Alembic migrations for users, thoughts, circles)
 5. Auth middleware (JWT validation in FastAPI)
 6. iOS AppState + Supabase client setup
 
@@ -1495,13 +1579,13 @@ This architecture document provides comprehensive guidance for AI agents and dev
 9. LLM service (OpenRouter/Claude integration, retry logic)
 
 **API Layer (Story 7-10):**
-10. REST endpoints (thoughts CRUD, abodes CRUD)
+10. REST endpoints (thoughts CRUD, circles CRUD)
 11. SSE streaming endpoint (chat/stream)
 12. ML endpoints (separate, discover, link, prioritize)
 
 **iOS Features (Story 11-15):**
 13. Capture view + separate thoughts
-14. Abode list + detail views
+14. Circle list + detail views
 15. Discover mode view
 16. Chat view (SSE streaming)
 
@@ -1561,7 +1645,7 @@ This architecture document provides comprehensive guidance for AI agents and dev
 1. Generate epics and user stories from Product Brief + Architecture
 2. Begin Story 0: Project Setup (Xcode + cookiecutter-fastapi-ML)
 3. Implement foundation (auth, schema, core services)
-4. Build features iteratively (Capture → Abodes → Discover → Chat)
+4. Build features iteratively (Capture → Circles → Discover → Chat)
 5. Deploy to TestFlight for testing
 
 ---
