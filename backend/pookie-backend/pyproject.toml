@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "pookie-backend"
+version = "0.1.0"
+description = "Pookie Backend - ML-optimized FastAPI backend for thought capture and semantic organization"
+authors = ["sudy"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.87.0"
+uvicorn = "0.20.0"
+pydantic = "^1.3"
+requests = "^2.22.0"
+loguru = "^0.6.0"
+joblib = "^1.2.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2"
+black = {version = "^19.10b0", allow-prereleases = true}
+autopep8 = "^2.0.0"
+ipdb = "^0.13.0"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

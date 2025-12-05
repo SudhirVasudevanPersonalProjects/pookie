@@ -1,0 +1,95 @@
+# generated: 2025-12-03
+# project: Pookie
+# project_key: pookie
+# tracking_system: file-system
+# story_location: docs/sprint-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic exists in epic file but not contexted
+#   - contexted: Epic tech context created (required before drafting stories)
+#   - in-progress: Epic work has begun
+#   - done: Epic completed
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - drafted: Story file created in stories folder by *create-story
+#   - ready-for-dev: Draft approved and story context created by *story-ready
+#   - in-progress: Developer actively working on implementation by *dev-story
+#   - review: Implementation complete, ready for review by *code-review
+#   - done: Story completed by *story-done
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - completed: Retrospective has been done by *retrospective
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epics should be 'contexted' before stories can be 'drafted'
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically drafts next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', SM reviews, then Dev moves to 'done'
+
+generated: 2025-12-03
+project: Pookie
+project_key: pookie
+tracking_system: file-system
+story_location: docs/sprint-artifacts
+
+development_status:
+  # Epic 1: Foundation & Infrastructure Setup
+  epic-1: in-progress
+  1-1-initialize-ios-project-with-supabase-swift-sdk: ready-for-dev
+  1-2-initialize-fastapi-backend-with-ml-template: backlog
+  1-3-set-up-supabase-project-and-database-schema: backlog
+  1-4-implement-jwt-authentication-middleware: backlog
+  1-5-create-ios-appstate-and-authentication-service: backlog
+  1-6-build-authentication-ui-sign-up-sign-in-sign-out: backlog
+  1-7-implement-basic-navigation-structure: backlog
+  epic-1-retrospective: optional
+
+  # Epic 2: Thought Capture & Storage
+  epic-2: backlog
+  2-1-create-sqlalchemy-thought-model-and-pydantic-schemas: backlog
+  2-2-implement-sentence-transformers-embedding-service: backlog
+  2-3-implement-faiss-vector-index-service: backlog
+  2-4-create-thoughts-crud-api-endpoints: backlog
+  2-5-create-ios-apiservice-and-thought-model: backlog
+  2-6-build-text-capture-ui-with-viewmodel: backlog
+  2-7-implement-voice-capture-with-ios-speech-recognition: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: AI-Powered Thought Separation (Call Agents Mode)
+  epic-3: backlog
+  3-1-implement-llm-service-with-openrouter-integration: backlog
+  3-2-create-thought-separation-api-endpoint: backlog
+  3-3-create-batch-thought-creation-endpoint: backlog
+  3-4-build-ios-separate-and-save-ui: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Semantic Organization (Abodes)
+  epic-4: backlog
+  4-1-create-abode-model-schemas-and-knowledge-graph-structure: backlog
+  4-2-implement-k-means-clustering-algorithm: backlog
+  4-3-implement-llm-based-abode-naming: backlog
+  4-4-create-abodes-api-endpoints: backlog
+  4-5-implement-ml-modes-tag-reflection-novelty: backlog
+  4-6-build-ios-abode-list-and-detail-views: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: Personalized Discovery
+  epic-5: backlog
+  5-1-implement-taste-profile-analysis-service: backlog
+  5-2-implement-recommendation-generation-with-rag-llm: backlog
+  5-3-create-discover-api-endpoint: backlog
+  5-4-build-ios-discover-view-with-recommendation-ui: backlog
+  epic-5-retrospective: optional
+
+  # Epic 6: RAG-Powered Personal Chat
+  epic-6: backlog
+  6-1-implement-rag-service-with-vector-search: backlog
+  6-2-implement-streaming-chat-service-with-claude-haiku: backlog
+  6-3-create-streaming-chat-api-endpoint-with-sse: backlog
+  6-4-implement-ios-sse-client-and-chat-ui: backlog
+  epic-6-retrospective: optional

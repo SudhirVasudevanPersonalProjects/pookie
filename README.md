@@ -31,7 +31,7 @@ Pookie is my external brain. I dump thoughts into it - messy, unstructured, raw 
 - I can chat with Pookie to refine: "actually, combine these two" or "split this differently"
 - No more manual cleanup - the AI figures out what I actually meant
 
-### 🎯 **Organizes Into "Abodes"**
+### 🎯 **Organizes Into "Circles of Care"**
 - Vector embeddings automatically cluster related thoughts into semantic groups
 - "Career stuff" lives together, "creative ideas" cluster naturally, "personal growth" emerges as a theme
 - I don't organize manually - machine learning finds the patterns
