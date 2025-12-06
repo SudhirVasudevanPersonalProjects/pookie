@@ -25,8 +25,8 @@ class AuthService {
     /// - Parameters:
     ///   - email: User's email address
     ///   - password: User's password (min 8 characters)
-    /// - Returns: Supabase Session with JWT token
-    /// - Throws: AuthError if validation fails, signup fails, or no session created
+    /// - Returns: Supabase Session with JWT token (if email confirmation disabled)
+    /// - Throws: AuthError if validation fails, signup fails, or email confirmation required
     func signUp(email: String, password: String) async throws -> Session {
         // Input validation
         try validateEmail(email)
@@ -38,12 +38,15 @@ class AuthService {
                 password: password
             )
 
-            // Supabase may create user but not return session (email confirmation required)
-            guard let session = response.session else {
-                throw AuthError.noSession
+            // Check if session was returned (happens when email confirmation is disabled)
+            if let session = response.session {
+                return session
             }
 
-            return session
+            // No session = email confirmation is enabled
+            // User was created but needs to confirm email before signing in
+            throw AuthError.emailConfirmationRequired(email: email)
+
         } catch let error as AuthError {
             throw error
         } catch {
@@ -125,6 +128,7 @@ enum AuthError: LocalizedError {
     case invalidEmail
     case weakPassword
     case invalidCredentials
+    case emailConfirmationRequired(email: String)
     case noSession
     case networkError
     case unknown(String)
@@ -137,6 +141,8 @@ enum AuthError: LocalizedError {
             return "Password must be at least 8 characters long."
         case .invalidCredentials:
             return "Email or password incorrect. Please try again."
+        case .emailConfirmationRequired(let email):
+            return "Account created! Please check \(email) for a confirmation link, then sign in."
         case .noSession:
             return "No session created after sign up. Please check your email for confirmation."
         case .networkError:
