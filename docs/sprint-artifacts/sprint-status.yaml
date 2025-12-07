@@ -54,7 +54,7 @@ development_status:
   2-1-create-sqlalchemy-something-model-and-pydantic-schemas: review
   2-2-implement-sentence-transformers-embedding-service: done
   2-3-implement-faiss-vector-index-service: done
-  2-4-create-somethings-crud-api-endpoints: ready-for-dev
+  2-4-create-somethings-crud-api-endpoints: done
   2-5-create-ios-apiservice-and-something-model: backlog
   2-6-build-text-capture-ui-with-viewmodel: backlog
   2-7-implement-voice-capture-with-ios-speech-recognition: backlog
