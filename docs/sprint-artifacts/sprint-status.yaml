@@ -40,42 +40,41 @@ story_location: docs/sprint-artifacts
 development_status:
   # Epic 1: Foundation & Infrastructure Setup
   epic-1: in-progress
-  1-1-initialize-ios-project-with-supabase-swift-sdk: ready-for-dev
-  1-2-initialize-fastapi-backend-with-ml-template: backlog
-  1-3-set-up-supabase-project-and-database-schema: backlog
-  1-4-implement-jwt-authentication-middleware: backlog
-  1-5-create-ios-appstate-and-authentication-service: backlog
-  1-6-build-authentication-ui-sign-up-sign-in-sign-out: backlog
-  1-7-implement-basic-navigation-structure: backlog
+  1-1-initialize-ios-project-with-supabase-swift-sdk: review
+  1-2-initialize-fastapi-backend-with-ml-template: review
+  1-3-set-up-supabase-project-and-database-schema: review
+  1-4-implement-jwt-authentication-middleware: review
+  1-5-create-ios-appstate-and-authentication-service: done
+  1-6-build-authentication-ui-sign-up-sign-in-sign-out: review
+  1-7-implement-basic-navigation-structure: review
   epic-1-retrospective: optional
 
-  # Epic 2: Thought Capture & Storage
-  epic-2: backlog
-  2-1-create-sqlalchemy-thought-model-and-pydantic-schemas: backlog
-  2-2-implement-sentence-transformers-embedding-service: backlog
-  2-3-implement-faiss-vector-index-service: backlog
-  2-4-create-thoughts-crud-api-endpoints: backlog
-  2-5-create-ios-apiservice-and-thought-model: backlog
+  # Epic 2: Something Capture & Storage
+  epic-2: in-progress
+  2-1-create-sqlalchemy-something-model-and-pydantic-schemas: review
+  2-2-implement-sentence-transformers-embedding-service: done
+  2-3-implement-faiss-vector-index-service: done
+  2-4-create-somethings-crud-api-endpoints: ready-for-dev
+  2-5-create-ios-apiservice-and-something-model: backlog
   2-6-build-text-capture-ui-with-viewmodel: backlog
   2-7-implement-voice-capture-with-ios-speech-recognition: backlog
   epic-2-retrospective: optional
 
-  # Epic 3: AI-Powered Thought Separation (Call Agents Mode)
+  # Epic 3: AI-Powered Something Separation (Call Agents Mode)
   epic-3: backlog
   3-1-implement-llm-service-with-openrouter-integration: backlog
-  3-2-create-thought-separation-api-endpoint: backlog
-  3-3-create-batch-thought-creation-endpoint: backlog
+  3-2-create-something-separation-api-endpoint: backlog
+  3-3-create-batch-something-creation-endpoint: backlog
   3-4-build-ios-separate-and-save-ui: backlog
   epic-3-retrospective: optional
 
-  # Epic 4: Semantic Organization (Abodes)
+  # Epic 4: Semantic Organization (Circles of Care)
   epic-4: backlog
-  4-1-create-abode-model-schemas-and-knowledge-graph-structure: backlog
+  4-1-create-circle-model-schemas-and-junction-table: backlog
   4-2-implement-k-means-clustering-algorithm: backlog
-  4-3-implement-llm-based-abode-naming: backlog
-  4-4-create-abodes-api-endpoints: backlog
-  4-5-implement-ml-modes-tag-reflection-novelty: backlog
-  4-6-build-ios-abode-list-and-detail-views: backlog
+  4-3-implement-llm-based-circle-naming: backlog
+  4-4-create-circles-api-endpoints-with-junction-table-support: backlog
+  4-5-build-ios-circle-list-and-detail-views: backlog
   epic-4-retrospective: optional
 
   # Epic 5: Personalized Discovery
