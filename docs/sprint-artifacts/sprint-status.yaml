@@ -1,8 +1,9 @@
-# generated: 2025-12-03
-# project: Pookie
+# generated: 2025-12-07
+# project: Pookie (Circles of Care)
 # project_key: pookie
 # tracking_system: file-system
 # story_location: docs/sprint-artifacts
+# change_proposal: docs/sprint-change-proposal-REVISED-2025-12-07.md
 
 # STATUS DEFINITIONS:
 # ==================
@@ -11,6 +12,7 @@
 #   - contexted: Epic tech context created (required before drafting stories)
 #   - in-progress: Epic work has begun
 #   - done: Epic completed
+#   - removed-deferred-to-v2: Removed from MVP, deferred to "Circles of Care v2"
 #
 # Story Status:
 #   - backlog: Story only exists in epic file
@@ -19,6 +21,7 @@
 #   - in-progress: Developer actively working on implementation by *dev-story
 #   - review: Implementation complete, ready for review by *code-review
 #   - done: Story completed by *story-done
+#   - removed-deferred-to-v2: Removed from MVP scope
 #
 # Retrospective Status:
 #   - optional: Can be completed but not required
@@ -31,7 +34,7 @@
 # - SM typically drafts next story after previous one is 'done' to incorporate learnings
 # - Dev moves story to 'review', SM reviews, then Dev moves to 'done'
 
-generated: 2025-12-03
+generated: 2025-12-07
 project: Pookie
 project_key: pookie
 tracking_system: file-system
@@ -39,56 +42,133 @@ story_location: docs/sprint-artifacts
 
 development_status:
   # Epic 1: Foundation & Infrastructure Setup
-  epic-1: in-progress
-  1-1-initialize-ios-project-with-supabase-swift-sdk: review
-  1-2-initialize-fastapi-backend-with-ml-template: review
-  1-3-set-up-supabase-project-and-database-schema: review
-  1-4-implement-jwt-authentication-middleware: review
+  epic-1: done
+  1-1-initialize-ios-project-with-supabase-swift-sdk: done
+  1-2-initialize-fastapi-backend-with-ml-template: done
+  1-3-set-up-supabase-project-and-database-schema: done
+  1-4-implement-jwt-authentication-middleware: done
   1-5-create-ios-appstate-and-authentication-service: done
-  1-6-build-authentication-ui-sign-up-sign-in-sign-out: review
-  1-7-implement-basic-navigation-structure: review
+  1-6-build-authentication-ui-sign-up-sign-in-sign-out: done
+  1-7-implement-basic-navigation-structure: done
   epic-1-retrospective: optional
 
-  # Epic 2: Something Capture & Storage
-  epic-2: in-progress
-  2-1-create-sqlalchemy-something-model-and-pydantic-schemas: review
+  # Epic 2: Something Capture & Storage (TEXT ONLY - Voice deferred to v2)
+  epic-2: done
+  2-1-create-sqlalchemy-something-model-and-pydantic-schemas: done
   2-2-implement-sentence-transformers-embedding-service: done
   2-3-implement-faiss-vector-index-service: done
   2-4-create-somethings-crud-api-endpoints: done
-  2-5-create-ios-apiservice-and-something-model: backlog
-  2-6-build-text-capture-ui-with-viewmodel: backlog
-  2-7-implement-voice-capture-with-ios-speech-recognition: backlog
+  2-5-create-ios-apiservice-and-something-model: done
+  2-6-build-text-capture-ui-with-viewmodel: done
+  2-7-implement-voice-capture-with-ios-speech-recognition: removed-deferred-to-v2  # REMOVED: Scope reduction 2025-12-07
   epic-2-retrospective: optional
 
-  # Epic 3: AI-Powered Something Separation (Call Agents Mode)
-  epic-3: backlog
-  3-1-implement-llm-service-with-openrouter-integration: backlog
-  3-2-create-something-separation-api-endpoint: backlog
-  3-3-create-batch-something-creation-endpoint: backlog
-  3-4-build-ios-separate-and-save-ui: backlog
-  epic-3-retrospective: optional
+  # Epic 3: AI-Powered Something Separation (Call Agents Mode) - REMOVED FROM MVP
+  epic-3: removed-deferred-to-v2  # REMOVED: Scope reduction 2025-12-07 - Deferred to "Circles of Care v2"
+  3-1-implement-llm-service-with-openrouter-integration: removed-deferred-to-v2
+  3-2-create-something-separation-api-endpoint: removed-deferred-to-v2
+  3-3-create-batch-something-creation-endpoint: removed-deferred-to-v2
+  3-4-build-ios-separate-and-save-ui: removed-deferred-to-v2
+  epic-3-retrospective: removed-deferred-to-v2
 
-  # Epic 4: Semantic Organization (Circles of Care)
-  epic-4: backlog
-  4-1-create-circle-model-schemas-and-junction-table: backlog
-  4-2-implement-k-means-clustering-algorithm: backlog
-  4-3-implement-llm-based-circle-naming: backlog
-  4-4-create-circles-api-endpoints-with-junction-table-support: backlog
-  4-5-build-ios-circle-list-and-detail-views: backlog
+  # Epic 4: Merged into MVP-1 (Centroid-based Circle Organization)
+  epic-4: merged-into-mvp
+  4-1-create-circle-model-schemas-and-junction-table: merged-into-mvp-1
+  4-2-implement-k-means-clustering-algorithm: merged-into-mvp-1
+  4-3-implement-llm-based-circle-naming: merged-into-mvp-1
+  4-4-create-circles-api-endpoints-with-junction-table-support: merged-into-mvp-1
+  4-5-build-ios-circle-list-and-detail-views: merged-into-mvp-1
   epic-4-retrospective: optional
 
-  # Epic 5: Personalized Discovery
-  epic-5: backlog
-  5-1-implement-taste-profile-analysis-service: backlog
-  5-2-implement-recommendation-generation-with-rag-llm: backlog
-  5-3-create-discover-api-endpoint: backlog
-  5-4-build-ios-discover-view-with-recommendation-ui: backlog
-  epic-5-retrospective: optional
+  # Epic 5: Personalized Discovery - REMOVED FROM MVP (Centroids provide vibe profiling)
+  epic-5: removed-deferred-to-v2  # REMOVED: Scope reduction 2025-12-07 - Deferred to "Circles of Care v2"
+  5-1-implement-taste-profile-analysis-service: removed-deferred-to-v2  # NOTE: Centroids provide this capability
+  5-2-implement-recommendation-generation-with-rag-llm: removed-deferred-to-v2
+  5-3-create-discover-api-endpoint: removed-deferred-to-v2
+  5-4-build-ios-discover-view-with-recommendation-ui: removed-deferred-to-v2
+  epic-5-retrospective: removed-deferred-to-v2
 
-  # Epic 6: RAG-Powered Personal Chat
-  epic-6: backlog
-  6-1-implement-rag-service-with-vector-search: backlog
-  6-2-implement-streaming-chat-service-with-claude-haiku: backlog
-  6-3-create-streaming-chat-api-endpoint-with-sse: backlog
-  6-4-implement-ios-sse-client-and-chat-ui: backlog
+  # Epic 6: Merged into MVP-2 (Personalized RAG Chat)
+  epic-6: merged-into-mvp
+  6-1-implement-rag-service-with-vector-search: merged-into-mvp-2  # Enhanced with PersonalizedRetrievalService
+  6-2-implement-streaming-chat-service-with-claude-haiku: merged-into-mvp-2
+  6-3-create-streaming-chat-api-endpoint-with-sse: merged-into-mvp-2
+  6-4-implement-ios-sse-client-and-chat-ui: merged-into-mvp-2
   epic-6-retrospective: optional
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # NEW MVP STRUCTURE (4-5 Stories) - Centroid-Enhanced Architecture
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  # MVP Epic: Pookie Core (Centroid RL + Personalized RAG)
+  epic-mvp: ready-for-dev
+
+  # Story MVP-1: Centroid-Based Circle Organization with Reinforcement Learning
+  # Backend: CentroidService, K-means, LLM naming, centroid_embedding column, learning signals
+  # iOS: Circle views, assign/remove UI, confidence indicators
+  # Effort: ~14 hours | Priority: VERY HIGH | ML Showcase: RL, personalized semantics
+  mvp-1-implement-centroid-based-circle-organization-with-rl: backlog
+
+  # Story MVP-2: Personalized RAG Chat with Centroid Re-ranking
+  # Backend: PersonalizedRetrievalService (hybrid: 40% FAISS + 40% centroids + 15% user feedback)
+  # iOS: Chat UI with SSE streaming, circle influence indicators
+  # Effort: ~10 hours | Priority: VERY HIGH | ML Showcase: Personalized retrieval
+  mvp-2-implement-personalized-rag-chat-with-centroid-reranking: backlog
+
+  # Story MVP-3: Care → Intention → Action Hierarchy
+  # Backend: Intention/Action models with circle relationships, CRUD APIs
+  # iOS: Intention/Action views with hierarchy navigation
+  # Effort: ~8 hours | Priority: HIGH | Business Value: Core product flow
+  mvp-3-implement-care-intention-action-hierarchy: backlog
+
+  # Story MVP-4: Polish, Testing & RL Validation
+  # Testing: Centroid math validation, RL loop verification, hybrid RAG scoring
+  # Polish: Error handling, loading states, empty states
+  # Effort: ~10 hours | Priority: HIGH | Deliverable: Stable recruiting demo
+  mvp-4-polish-testing-and-rl-validation: backlog
+
+  # Story MVP-5: Deploy & ML Demo Documentation (OPTIONAL)
+  # Deployment: Render backend, iOS TestFlight
+  # Docs: README with centroid RL architecture, recruiting demo script
+  # Effort: ~6 hours | Priority: MEDIUM | Deliverable: Deployed MVP
+  mvp-5-deploy-and-ml-demo-documentation: backlog
+
+  epic-mvp-retrospective: optional
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# DEFERRED TO "CIRCLES OF CARE V2" (Post-MVP Roadmap)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Version 2 Features (Post-Recruiting Milestone):
+# 1. Voice Capture (Story 2.7) - iOS Speech Recognition, real-time transcription
+# 2. Call Agents Mode (Epic 3) - AI thought separation, batch creation, preview UI
+# 3. Discover Mode (Epic 5) - Taste learning, action recommendations, RAG synthesis
+# 4. Story Page Timeline - Visual timeline, progress tracking, reflection prompts
+# 5. Advanced Features - Multi-circle UI, graph visualization, offline sync
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# PROJECT METRICS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+metrics:
+  total_stories_original: 31
+  total_stories_mvp: 18  # 13 done (Epic 1+2) + 5 MVP stories
+  stories_removed: 13  # 2.7 + Epic 3 (4) + Epic 5 (4) + Epic 4/6 streamlined (4)
+  scope_reduction: 42%  # 13/31 stories removed
+  remaining_effort_hours: 48  # MVP-1 (14h) + MVP-2 (10h) + MVP-3 (8h) + MVP-4 (10h) + MVP-5 (6h optional)
+  estimated_timeline_days: 10  # 48 hours / 5 hours per day = ~10 days
+  recruiting_ready: "2025-12-17"  # 10 days from 2025-12-07
+
+ml_capabilities:
+  reinforcement_learning: true  # Centroid shifts from user feedback
+  personalized_semantics: true  # Circle centroids = custom semantic categories
+  hybrid_rag: true  # FAISS + centroid re-ranking
+  vibe_profiling: true  # Circle centroids represent user's vibe
+  learning_signals: true  # is_user_assigned, confidence_score in junction table
+
+architecture_enhancements:
+  centroid_based_rl: true
+  personalized_retrieval_service: true
+  incremental_centroid_updates: true
+  hybrid_similarity_scoring: true
+  database_columns_added: 1  # circles.centroid_embedding FLOAT[384]
