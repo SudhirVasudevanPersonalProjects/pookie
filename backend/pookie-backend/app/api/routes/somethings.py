@@ -12,10 +12,11 @@ from uuid import UUID
 from app.core.database import get_db
 from app.core.security import get_current_user_id
 from app.models.something import Something
-from app.schemas.something import SomethingCreate, SomethingResponse, SomethingUpdateMeaning
+from app.schemas.something import SomethingCreate, SomethingResponse, SomethingUpdateMeaning, CirclePrediction
 from app.services.embedding_service import embedding_service
 from app.services.vector_service import vector_service
 from app.services.llm_service import llm_service
+from app.services.centroid_service import centroid_service
 from loguru import logger
 
 router = APIRouter()
@@ -96,7 +97,35 @@ async def create_something(
             await vector_service.save_to_storage()
             logger.info(f"FAISS index saved at something ID: {db_something.id}")
 
-        return SomethingResponse.model_validate(db_something)
+        # Predict circle suggestions using centroid similarity (MVP-1)
+        # This helps users organize their thoughts with AI assistance
+        suggested_circles = []
+        try:
+            predictions = centroid_service.predict_circles_for_something(
+                something_id=db_something.id,
+                user_id=user_id,
+                db=db,
+                threshold=0.7,
+                top_k=3
+            )
+            suggested_circles = [
+                CirclePrediction(
+                    circleId=p["circleId"],
+                    circleName=p["circleName"],
+                    confidence=p["confidence"]
+                )
+                for p in predictions
+            ]
+            logger.info(f"Predicted {len(suggested_circles)} circles for something {db_something.id}")
+        except Exception as e:
+            # Graceful degradation - don't fail creation if prediction fails
+            logger.warning(f"Circle prediction failed for something {db_something.id}: {str(e)}")
+
+        # Build response with suggestions
+        response = SomethingResponse.model_validate(db_something)
+        response.suggested_circles = suggested_circles
+
+        return response
 
     except ValueError as e:
         logger.error(f"Invalid UUID format: {user_id}")

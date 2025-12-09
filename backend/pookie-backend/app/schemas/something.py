@@ -24,6 +24,15 @@ class SomethingCreate(SomethingBase):
     pass
 
 
+class CirclePrediction(BaseModel):
+    """Circle prediction from centroid similarity."""
+    model_config = ConfigDict(populate_by_name=True)
+
+    circle_id: int = Field(alias="circleId")
+    circle_name: str = Field(alias="circleName")
+    confidence: float
+
+
 class SomethingResponse(SomethingBase):
     model_config = ConfigDict(populate_by_name=True, from_attributes=True)
 
@@ -32,6 +41,7 @@ class SomethingResponse(SomethingBase):
     meaning: Optional[str] = None
     is_meaning_user_edited: bool = Field(alias="isMeaningUserEdited", default=False)
     novelty_score: Optional[float] = Field(alias="noveltyScore", default=None, ge=0.0, le=1.0)
+    suggested_circles: List[CirclePrediction] = Field(alias="suggestedCircles", default_factory=list)
     created_at: datetime = Field(alias="createdAt")
     updated_at: datetime = Field(alias="updatedAt")
 

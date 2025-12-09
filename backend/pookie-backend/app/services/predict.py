@@ -1,7 +1,7 @@
 import os
 
 from app.core.errors import PredictException, ModelLoadException
-from app.core.config import MODEL_NAME, MODEL_PATH
+from app.core.config import settings
 from loguru import logger
 
 
@@ -24,10 +24,10 @@ class MachineLearningModelHandlerScore(object):
     @staticmethod
     def load(load_wrapper):
         model = None
-        if MODEL_PATH.endswith("/"):
-            path = f"{MODEL_PATH}{MODEL_NAME}"
+        if settings.MODEL_PATH.endswith("/"):
+            path = f"{settings.MODEL_PATH}{settings.MODEL_NAME}"
         else:
-            path = f"{MODEL_PATH}/{MODEL_NAME}"
+            path = f"{settings.MODEL_PATH}/{settings.MODEL_NAME}"
         if not os.path.exists(path):
             message = f"Machine learning model at {path} not exists!"
             logger.error(message)
