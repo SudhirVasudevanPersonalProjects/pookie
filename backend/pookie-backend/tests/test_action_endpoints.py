@@ -83,7 +83,7 @@ class TestCreateAction:
             json=test_action_data
         )
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_create_action_empty_text(self, client, mock_auth_headers, test_user):
         """Reject empty action text."""

@@ -37,6 +37,13 @@ venv/
 *.db
 *.sqlite3
 
+# Alembic (contains database credentials)
+backend/pookie-backend/alembic.ini
+
+# Test/verification scripts (may contain credentials)
+backend/pookie-backend/test_db_connection.py
+backend/pookie-backend/verify_schema.py
+
 # FAISS Indexes
 *.faiss
 *.index
@@ -57,6 +64,18 @@ venv/
 .LSOverride
 
 # Xcode / iOS
+build/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
 *.xcuserstate
 *.xcworkspace/xcuserdata/
 DerivedData/
@@ -64,6 +83,11 @@ DerivedData/
 *.ipa
 *.dSYM.zip
 *.dSYM
+.swiftpm/
+
+# iOS Secrets (CRITICAL)
+ios/**/Config.plist
+**/Config.plist
 
 # Swift Package Manager
 .build/
@@ -79,3 +103,11 @@ Package.resolved
 secrets.yaml
 credentials.json
 .api_keys
+
+# Temporary Analysis Files (code review artifacts)
+*ANALYSIS*.txt
+*ANALYSIS*.md
+*SUMMARY*.md
+STORY-*-ANALYSIS*.md
+*-INDEX.md
+*-QUICK-REFERENCE.md

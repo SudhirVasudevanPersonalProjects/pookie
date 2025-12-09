@@ -8,9 +8,26 @@
 import Foundation
 import Supabase
 
+/// Load Supabase configuration from Config.plist
+private func loadSupabaseConfig() -> (url: URL, key: String) {
+    guard let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
+          let config = NSDictionary(contentsOfFile: path) as? [String: Any],
+          let urlString = config["SupabaseURL"] as? String,
+          let url = URL(string: urlString),
+          let key = config["SupabaseAnonKey"] as? String else {
+        fatalError("Failed to load Supabase config from Config.plist")
+    }
+    return (url, key)
+}
+
 // Global Supabase client
-// TODO: Load URL and key from Config.plist in Story 1.5
-let supabase = SupabaseClient(
-    supabaseURL: URL(string: "YOUR_SUPABASE_URL")!,
-    supabaseKey: "YOUR_SUPABASE_ANON_KEY"
-)
+let supabase: SupabaseClient = {
+    let config = loadSupabaseConfig()
+    print("Loaded SupabaseURL =", config.url)
+    print("Loaded SupabaseAnonKey =", config.key.prefix(8), "...")
+    
+    return SupabaseClient(
+        supabaseURL: config.url,
+        supabaseKey: config.key
+    )
+}()

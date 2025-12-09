@@ -107,31 +107,34 @@ development_status:
   # Backend: CentroidService, K-means, LLM naming, centroid_embedding column, learning signals
   # iOS: Circle views, assign/remove UI, confidence indicators
   # Effort: ~14 hours | Priority: VERY HIGH | ML Showcase: RL, personalized semantics
-  mvp-1-implement-centroid-based-circle-organization-with-rl: backlog
+  # Note: Backend complete (API + tests), iOS deferred to parallel work
+  mvp-1-implement-centroid-based-circle-organization-with-rl: review
 
   # Story MVP-2: Personalized RAG Chat with Centroid Re-ranking
   # Backend: PersonalizedRetrievalService (hybrid: 40% FAISS + 40% centroids + 15% user feedback)
   # iOS: Chat UI with SSE streaming, circle influence indicators
   # Effort: ~10 hours | Priority: VERY HIGH | ML Showcase: Personalized retrieval
-  mvp-2-implement-personalized-rag-chat-with-centroid-reranking: backlog
+  mvp-2-implement-personalized-rag-chat-with-centroid-reranking: done
 
   # Story MVP-3: Care → Intention → Action Hierarchy
   # Backend: Intention/Action models with circle relationships, CRUD APIs
   # iOS: Intention/Action views with hierarchy navigation
   # Effort: ~8 hours | Priority: HIGH | Business Value: Core product flow
-  mvp-3-implement-care-intention-action-hierarchy: backlog
+  # Note: Backend complete (46/51 tests passing), iOS deferred
+  mvp-3-implement-care-intention-action-hierarchy: review
 
   # Story MVP-4: Polish, Testing & RL Validation
   # Testing: Centroid math validation, RL loop verification, hybrid RAG scoring
   # Polish: Error handling, loading states, empty states
   # Effort: ~10 hours | Priority: HIGH | Deliverable: Stable recruiting demo
-  mvp-4-polish-testing-and-rl-validation: backlog
+  # Note: Core tests complete (centroid math 9/9, RL loop 5/5, hybrid RAG 6/6), polish tasks deferred to post-MVP
+  mvp-4-polish-testing-and-rl-validation: review
 
   # Story MVP-5: Deploy & ML Demo Documentation (OPTIONAL)
   # Deployment: Render backend, iOS TestFlight
   # Docs: README with centroid RL architecture, recruiting demo script
   # Effort: ~6 hours | Priority: MEDIUM | Deliverable: Deployed MVP
-  mvp-5-deploy-and-ml-demo-documentation: backlog
+  mvp-5-deploy-and-ml-demo-documentation: ready-for-dev
 
   epic-mvp-retrospective: optional
 

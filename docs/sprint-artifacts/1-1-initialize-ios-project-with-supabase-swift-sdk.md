@@ -1,6 +1,6 @@
 # Story 1.1: Initialize iOS Project with Supabase Swift SDK
 
-Status: ready-for-dev
+Status: Ready for Review
 
 **Epic:** 1 - Foundation & Infrastructure Setup
 **Story ID:** 1.1
@@ -49,72 +49,122 @@ let supabase = SupabaseClient(
 
 ## Tasks / Subtasks
 
-- [ ] Verify system requirements
-  - [ ] macOS Sonoma 14.0+ installed
-  - [ ] Xcode 15.0+ installed (run `xcodebuild -version` to verify)
-  - [ ] Minimum 10GB free disk space
+- [x] Verify system requirements
+  - [x] macOS Sonoma 14.0+ installed
+  - [x] Xcode 15.0+ installed (run `xcodebuild -version` to verify)
+  - [x] Minimum 10GB free disk space
 
-- [ ] Create new Xcode iOS project (AC: 1)
-  - [ ] Open Xcode > File > New > Project > iOS > App
-  - [ ] Save location: Navigate to existing `/path/to/Pookie/ios/` directory
-  - [ ] Product Name: "Pookie"
-  - [ ] Interface: SwiftUI
-  - [ ] Life Cycle: SwiftUI App
-  - [ ] Language: Swift
-  - [ ] Verify project created at `ios/Pookie/Pookie.xcodeproj`
+- [x] Create new Xcode iOS project (AC: 1)
+  - [x] Open Xcode > File > New > Project > iOS > App
+  - [x] Save location: Navigate to existing `/path/to/Pookie/ios/` directory
+  - [x] Product Name: "Pookie"
+  - [x] Interface: SwiftUI
+  - [x] Life Cycle: SwiftUI App
+  - [x] Language: Swift
+  - [x] Verify project created at `ios/Pookie/Pookie.xcodeproj`
 
-- [ ] Configure minimum iOS deployment target
-  - [ ] Select "Pookie" project (top level in navigator)
-  - [ ] Select "Pookie" target (under TARGETS)
-  - [ ] General tab > Deployment Info > Minimum Deployments: Set to "iOS 17.0"
-  - [ ] Verify Build Settings > IPHONEOS_DEPLOYMENT_TARGET = 17.0
+- [x] Configure minimum iOS deployment target
+  - [x] Select "Pookie" project (top level in navigator)
+  - [x] Select "Pookie" target (under TARGETS)
+  - [x] General tab > Deployment Info > Minimum Deployments: Set to "iOS 17.0"
+  - [x] Verify Build Settings > IPHONEOS_DEPLOYMENT_TARGET = 17.0
 
-- [ ] Add Supabase Swift SDK via Swift Package Manager (AC: 2)
-  - [ ] File > Add Package Dependencies in Xcode
-  - [ ] Add package URL: `https://github.com/supabase/supabase-swift`
-  - [ ] Dependency Rule: Select "Up to Next Major Version"
-  - [ ] Version: Enter "2.0.0"
-  - [ ] Add package products: Supabase, Auth, PostgREST, Storage (do NOT add Realtime or Functions)
-  - [ ] Verify products linked to "Pookie" target (not test target)
+- [x] Add Supabase Swift SDK via Swift Package Manager (AC: 2)
+  - [x] File > Add Package Dependencies in Xcode
+  - [x] Add package URL: `https://github.com/supabase/supabase-swift`
+  - [x] Dependency Rule: Select "Up to Next Major Version"
+  - [x] Version: Enter "2.0.0"
+  - [x] Add package products: Supabase, Auth, PostgREST, Storage (do NOT add Realtime or Functions)
+  - [x] Verify products linked to "Pookie" target (not test target)
 
-- [ ] Verify Swift Package installation
-  - [ ] In project navigator, expand "Package Dependencies"
-  - [ ] Expand "supabase-swift" and verify version shows 2.x.x
-  - [ ] Build Phases > Link Binary With Libraries: Verify all 4 products appear
-  - [ ] Check Package.resolved file exists and shows correct version
+- [x] Verify Swift Package installation
+  - [x] In project navigator, expand "Package Dependencies"
+  - [x] Expand "supabase-swift" and verify version shows 2.x.x
+  - [x] Build Phases > Link Binary With Libraries: Verify all 4 products appear
+  - [x] Check Package.resolved file exists and shows correct version
 
-- [ ] Create project folder structure (AC: 3)
-  - [ ] In Finder, navigate to `ios/Pookie/Pookie/`
-  - [ ] Create directories: App/, Resources/, Models/, ViewModels/, Views/, Services/
-  - [ ] In Xcode, right-click "Pookie" group > Add Files to "Pookie"
-  - [ ] Select each folder, check "Create groups" (NOT "Create folder references")
-  - [ ] Verify Xcode navigator structure matches filesystem
+- [x] Create project folder structure (AC: 3)
+  - [x] In Finder, navigate to `ios/Pookie/Pookie/`
+  - [x] Create directories: App/, Resources/, Models/, ViewModels/, Views/, Services/
+  - [x] In Xcode, right-click "Pookie" group > Add Files to "Pookie"
+  - [x] Select each folder, check "Create groups" (NOT "Create folder references")
+  - [x] Verify Xcode navigator structure matches filesystem
 
-- [ ] Create Supabase client initialization file (AC: 3)
-  - [ ] Right-click App/ group > New File > Swift File
-  - [ ] Name: Supabase.swift
-  - [ ] Add content: `import Supabase` and SupabaseClient initialization
-  - [ ] Add TODO comment: `// TODO: Load from Config.plist in Story 1.5`
+- [x] Create Supabase client initialization file (AC: 3)
+  - [x] Right-click App/ group > New File > Swift File
+  - [x] Name: Supabase.swift
+  - [x] Add content: `import Supabase` and SupabaseClient initialization
+  - [x] Add TODO comment: `// TODO: Load from Config.plist in Story 1.5`
 
-- [ ] Create configuration file for secrets (AC: 4)
-  - [ ] Right-click Resources/ folder > New File > Property List
-  - [ ] Name: Config.plist
-  - [ ] Add keys: SupabaseURL (String), SupabaseAnonKey (String)
-  - [ ] Add placeholder values with TODO comment
-  - [ ] Verify file appears in Resources/ folder
+- [x] Create configuration file for secrets (AC: 4)
+  - [x] Right-click Resources/ folder > New File > Property List
+  - [x] Name: Config.plist
+  - [x] Add keys: SupabaseURL (String), SupabaseAnonKey (String)
+  - [x] Add placeholder values with TODO comment
+  - [x] Verify file appears in Resources/ folder
 
-- [ ] Configure .gitignore (AC: 5)
-  - [ ] Update existing root `.gitignore` at `/path/to/Pookie/.gitignore`
-  - [ ] Add iOS-specific patterns including `**/Config.plist`
-  - [ ] Run `git status` and verify Config.plist does NOT appear
+- [x] Configure .gitignore (AC: 5)
+  - [x] Update existing root `.gitignore` at `/path/to/Pookie/.gitignore`
+  - [x] Add iOS-specific patterns including `**/Config.plist`
+  - [x] Run `git status` and verify Config.plist does NOT appear
 
-- [ ] Verify build (AC: 6)
-  - [ ] Select target: "Pookie" (not test targets)
-  - [ ] Select destination: "iPhone 15 Pro Simulator" or "Any iOS Device (arm64)"
-  - [ ] Press Cmd+B (Product > Build)
-  - [ ] Verify build succeeds (green checkmark)
-  - [ ] Verify zero errors and zero Supabase-related warnings
-  - [ ] Check build log shows "Build Succeeded"
+- [x] Verify build (AC: 6)
+  - [x] Select target: "Pookie" (not test targets)
+  - [x] Select destination: "iPhone 15 Pro Simulator" or "Any iOS Device (arm64)"
+  - [x] Press Cmd+B (Product > Build)
+  - [x] Verify build succeeds (green checkmark)
+  - [x] Verify zero errors and zero Supabase-related warnings
+  - [x] Check build log shows "Build Succeeded"
+
+## Dev Agent Record
+
+### Debug Log
+
+**2025-12-03 - System Requirements & Setup**
+- ✅ Xcode 16.1.1 detected (exceeds 15.0+ requirement)
+- ✅ Disk space: 135GB available
+- ✅ Existing Xcode project found at wrong location - relocated to ios/Pookie/
+- ✅ iOS deployment target set to 17.0 (was 26.1)
+- ✅ Supabase Swift SDK v2.37.0 added via SPM
+- ✅ Removed unnecessary packages (Functions, Realtime per AC)
+- ✅ Added required 4 products: Supabase, Auth, PostgREST, Storage
+- ✅ Fixed project structure for FileSystemSynchronizedRootGroup
+- ✅ Added Foundation import to Supabase.swift
+
+### Implementation Plan
+1. Verified system requirements (Xcode, disk space)
+2. Fixed project directory structure (ios/Pookie/Pookie/ for sources)
+3. Configured iOS 17.0 deployment target
+4. Added Supabase Swift SDK with correct products
+5. Created folder structure (App/, Resources/, Models/, ViewModels/, Views/, Services/)
+6. Created App/Supabase.swift with global client
+7. Created Resources/Config.plist with placeholder values
+8. Updated .gitignore to exclude Config.plist
+9. Fixed build errors (added Foundation import, main Supabase module)
+10. Verified build succeeds on iPhone 17 Pro simulator
+
+### Completion Notes
+All acceptance criteria satisfied:
+- ✅ Xcode project at ios/Pookie/ with iOS 17.0 target
+- ✅ Supabase Swift SDK 2.37.0 with 4 required products
+- ✅ App/Supabase.swift created with SupabaseClient initialization
+- ✅ Resources/Config.plist created and gitignored
+- ✅ Build succeeds with zero errors
+
+---
+
+## File List
+- ios/Pookie/Pookie.xcodeproj/project.pbxproj (modified: deployment target, Supabase packages)
+- ios/Pookie/Pookie/App/Supabase.swift (created)
+- ios/Pookie/Pookie/Resources/Config.plist (created)
+- .gitignore (modified: added iOS-specific patterns and Config.plist exclusion)
+
+---
+
+## Change Log
+- 2025-12-03: iOS project initialized with Supabase Swift SDK v2.37.0, folder structure created, build verified successful
+
+---
 
 ## Dev Notes
 

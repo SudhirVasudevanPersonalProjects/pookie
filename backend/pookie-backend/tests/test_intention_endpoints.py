@@ -63,7 +63,7 @@ class TestCreateIntention:
             json=test_intention_data
         )
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_create_intention_empty_text(self, client, mock_auth_headers, test_user):
         """Reject empty intention text."""

@@ -7,18 +7,30 @@
 
 import SwiftUI
 
+/// Root view that conditionally displays AuthView or HomeView based on authentication state.
+/// Navigation updates automatically when AppState.isAuthenticated changes.
 struct ContentView: View {
+    // MARK: - State
+
+    @Environment(AppState.self) private var appState
+
+    // MARK: - Body
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, Pookie!")
+        Group {
+            if appState.isLoading {
+                // Show loading while checking session
+                ProgressView("Loading...")
+            } else if appState.isAuthenticated {
+                HomeView()
+            } else {
+                AuthView()
+            }
         }
-        .padding()
     }
 }
 
 #Preview {
     ContentView()
+        .environment(AppState())
 }

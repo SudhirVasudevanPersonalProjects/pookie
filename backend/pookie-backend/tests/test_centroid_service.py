@@ -276,3 +276,79 @@ def test_predict_circles_no_centroids(db_session, test_user):
     )
 
     assert predictions == []
+
+
+def test_floating_point_precision_over_100_operations(db_session, test_user):
+    """
+    Test that centroid updates maintain precision over 100+ operations.
+
+    AC: 1 - Floating point precision: No accumulation errors over 100+ operations.
+
+    This test verifies that incremental mean calculations don't accumulate
+    floating point errors that would corrupt the centroid over many updates.
+    """
+    # Create circle with initial centroid
+    initial_centroid = [1.0, 0.0, 0.0] + [0.0] * 381
+    circle = Circle(
+        user_id=test_user.id,
+        circle_name="Precision Test",
+        centroid_embedding=initial_centroid.copy()
+    )
+    db_session.add(circle)
+    db_session.commit()
+
+    # Perform 100 add operations with similar embeddings
+    embeddings_to_add = []
+    for i in range(100):
+        # Create slight variations around [1, 0, 0]
+        embedding = [1.0 + (i % 10) * 0.01, 0.0, 0.0] + [0.0] * 381
+        embeddings_to_add.append(embedding)
+
+        # Create something and add to circle
+        something = Something(
+            user_id=test_user.id,
+            content=f"Item {i}",
+            content_type="text"
+        )
+        db_session.add(something)
+        db_session.commit()
+
+        sc = SomethingCircle(
+            circle_id=circle.id,
+            something_id=something.id,
+            is_user_assigned=True
+        )
+        db_session.add(sc)
+        db_session.commit()
+
+        # Update centroid incrementally
+        centroid_service.update_centroid_add(circle.id, embedding, db_session)
+
+    # Get final centroid after 100 operations
+    db_session.refresh(circle)
+    final_centroid = np.array(circle.centroid_embedding)
+
+    # Verify centroid is still normalized (magnitude = 1.0)
+    magnitude = np.linalg.norm(final_centroid)
+    assert abs(magnitude - 1.0) < 1e-5, \
+        f"Centroid should remain normalized after 100 ops: magnitude={magnitude}"
+
+    # Verify centroid is still close to expected direction
+    # Since all embeddings are near [1, 0, 0], centroid should still be on X-axis
+    assert final_centroid[0] > 0.95, \
+        f"After 100 operations, centroid should still point along X-axis: {final_centroid[:3]}"
+
+    # Verify no NaN or Inf values (signs of floating point corruption)
+    assert not np.isnan(final_centroid).any(), "Centroid contains NaN after 100 operations"
+    assert not np.isinf(final_centroid).any(), "Centroid contains Inf after 100 operations"
+
+    # Test stability: Compute centroid manually and compare
+    # Manual calculation: mean of all embeddings (including initial)
+    all_embeddings = [initial_centroid] + embeddings_to_add
+    manual_mean = np.mean(all_embeddings, axis=0)
+    manual_normalized = manual_mean / np.linalg.norm(manual_mean)
+
+    # Incremental calculation should match manual calculation (within tolerance)
+    cosine_similarity = np.dot(final_centroid, manual_normalized)
+    assert cosine_similarity > 0.999, \
+        f"Incremental centroid should match manual calculation: similarity={cosine_similarity}"
