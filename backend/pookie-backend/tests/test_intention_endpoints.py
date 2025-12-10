@@ -15,8 +15,8 @@ def test_intention_data():
 
 
 @pytest.fixture
-def create_test_intention(client, mock_auth_headers, test_user, test_intention_data):
-    """Create a test intention and return its data."""
+def create_test_intention_via_api(client, mock_auth_headers, test_user, test_intention_data):
+    """Create a test intention via API and return its JSON data."""
     response = client.post(
         "/api/v1/intentions",
         json=test_intention_data,
@@ -99,7 +99,7 @@ class TestListIntentions:
         data = response.json()
         assert isinstance(data, list)
 
-    def test_list_intentions_with_data(self, client, mock_auth_headers, test_user, create_test_intention):
+    def test_list_intentions_with_data(self, client, mock_auth_headers, test_user, create_test_intention_via_api):
         """List intentions with existing data."""
         response = client.get(
             "/api/v1/intentions",
@@ -110,33 +110,31 @@ class TestListIntentions:
         data = response.json()
         assert isinstance(data, list)
         assert len(data) >= 1
-        assert any(i["id"] == create_test_intention["id"] for i in data)
+        assert any(i["id"] == create_test_intention_via_api["id"] for i in data)
 
-    def test_list_intentions_user_isolation(self, client, test_user_token, mock_other_auth_headers, other_user):
+    def test_list_intentions_user_isolation(self, client, test_user, create_test_intention, mock_other_auth_headers, other_user):
         """Users only see their own intentions."""
-        # User 1 creates intention
-        response1 = client.post(
-            "/api/v1/intentions",
-            json={"intentionText": "User 1 intention"},
-            headers=mock_auth_headers
+        # User 1 has an intention (created directly in DB)
+        test_user_intention = create_test_intention(
+            user_id=test_user.id,
+            intention_text="User 1 intention"
         )
-        assert response1.status_code == status.HTTP_201_CREATED
 
-        # User 2 lists intentions
-        response2 = client.get(
+        # User 2 lists their intentions
+        response = client.get(
             "/api/v1/intentions",
             headers=mock_other_auth_headers
         )
-        assert response2.status_code == status.HTTP_200_OK
-        data2 = response2.json()
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
         # User 2 should not see User 1's intention
-        assert not any(i["intentionText"] == "User 1 intention" for i in data2)
+        assert not any(i["intentionText"] == "User 1 intention" for i in data)
 
 
 class TestGetIntentionDetail:
-    def test_get_intention_detail_success(self, client, mock_auth_headers, test_user, create_test_intention):
+    def test_get_intention_detail_success(self, client, mock_auth_headers, test_user, create_test_intention_via_api):
         """Get intention detail successfully."""
-        intention_id = create_test_intention["id"]
+        intention_id = create_test_intention_via_api["id"]
 
         response = client.get(
             f"/api/v1/intentions/{intention_id}",
@@ -160,30 +158,27 @@ class TestGetIntentionDetail:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_get_intention_detail_wrong_user(self, client, test_user_token, mock_other_auth_headers, other_user):
+    def test_get_intention_detail_wrong_user(self, client, test_user, create_test_intention, mock_other_auth_headers, other_user):
         """Return 404 when accessing another user's intention."""
-        # User 1 creates intention
-        response1 = client.post(
-            "/api/v1/intentions",
-            json={"intentionText": "User 1 intention"},
-            headers=mock_auth_headers
+        # User 1 has an intention (created directly in DB)
+        test_user_intention = create_test_intention(
+            user_id=test_user.id,
+            intention_text="User 1 intention"
         )
-        assert response1.status_code == status.HTTP_201_CREATED
-        intention_id = response1.json()["id"]
 
         # User 2 tries to access it
-        response2 = client.get(
-            f"/api/v1/intentions/{intention_id}",
+        response = client.get(
+            f"/api/v1/intentions/{test_user_intention.id}",
             headers=mock_other_auth_headers
         )
 
-        assert response2.status_code == status.HTTP_404_NOT_FOUND
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 class TestUpdateIntention:
-    def test_update_intention_text(self, client, mock_auth_headers, test_user, create_test_intention):
+    def test_update_intention_text(self, client, mock_auth_headers, test_user, create_test_intention_via_api):
         """Update intention text."""
-        intention_id = create_test_intention["id"]
+        intention_id = create_test_intention_via_api["id"]
 
         response = client.put(
             f"/api/v1/intentions/{intention_id}",
@@ -195,9 +190,9 @@ class TestUpdateIntention:
         data = response.json()
         assert data["intentionText"] == "Updated text"
 
-    def test_update_intention_status(self, client, mock_auth_headers, test_user, create_test_intention):
+    def test_update_intention_status(self, client, mock_auth_headers, test_user, create_test_intention_via_api):
         """Update intention status."""
-        intention_id = create_test_intention["id"]
+        intention_id = create_test_intention_via_api["id"]
 
         response = client.put(
             f"/api/v1/intentions/{intention_id}",
@@ -209,9 +204,9 @@ class TestUpdateIntention:
         data = response.json()
         assert data["status"] == "completed"
 
-    def test_update_intention_both(self, client, mock_auth_headers, test_user, create_test_intention):
+    def test_update_intention_both(self, client, mock_auth_headers, test_user, create_test_intention_via_api):
         """Update both text and status."""
-        intention_id = create_test_intention["id"]
+        intention_id = create_test_intention_via_api["id"]
 
         response = client.put(
             f"/api/v1/intentions/{intention_id}",
@@ -236,9 +231,9 @@ class TestUpdateIntention:
 
 
 class TestDeleteIntention:
-    def test_delete_intention_success(self, client, mock_auth_headers, test_user, create_test_intention):
+    def test_delete_intention_success(self, client, mock_auth_headers, test_user, create_test_intention_via_api):
         """Delete intention successfully."""
-        intention_id = create_test_intention["id"]
+        intention_id = create_test_intention_via_api["id"]
 
         response = client.delete(
             f"/api/v1/intentions/{intention_id}",
@@ -265,9 +260,9 @@ class TestDeleteIntention:
 
 
 class TestLinkCaresToIntention:
-    def test_link_cares_success(self, client, mock_auth_headers, test_user, create_test_intention, create_test_something):
+    def test_link_cares_success(self, client, mock_auth_headers, test_user, create_test_intention_via_api, create_test_something):
         """Link somethings to intention successfully."""
-        intention_id = create_test_intention["id"]
+        intention_id = create_test_intention_via_api["id"]
         something_id = create_test_something["id"]
 
         response = client.post(
@@ -288,9 +283,9 @@ class TestLinkCaresToIntention:
         assert len(data["linkedSomethings"]) == 1
         assert data["linkedSomethings"][0]["id"] == something_id
 
-    def test_link_cares_duplicate(self, client, mock_auth_headers, test_user, create_test_intention, create_test_something):
+    def test_link_cares_duplicate(self, client, mock_auth_headers, test_user, create_test_intention_via_api, create_test_something):
         """Linking same something twice doesn't create duplicate."""
-        intention_id = create_test_intention["id"]
+        intention_id = create_test_intention_via_api["id"]
         something_id = create_test_something["id"]
 
         # Link once
@@ -329,9 +324,9 @@ class TestLinkCaresToIntention:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_link_cares_not_found_something(self, client, mock_auth_headers, test_user, create_test_intention):
+    def test_link_cares_not_found_something(self, client, mock_auth_headers, test_user, create_test_intention_via_api):
         """Return 404 for non-existent something."""
-        intention_id = create_test_intention["id"]
+        intention_id = create_test_intention_via_api["id"]
 
         response = client.post(
             f"/api/v1/intentions/{intention_id}/link-cares",
@@ -343,9 +338,9 @@ class TestLinkCaresToIntention:
 
 
 class TestUnlinkCareFromIntention:
-    def test_unlink_care_success(self, client, mock_auth_headers, test_user, create_test_intention, create_test_something):
+    def test_unlink_care_success(self, client, mock_auth_headers, test_user, create_test_intention_via_api, create_test_something):
         """Unlink something from intention successfully."""
-        intention_id = create_test_intention["id"]
+        intention_id = create_test_intention_via_api["id"]
         something_id = create_test_something["id"]
 
         # Link first
@@ -371,9 +366,9 @@ class TestUnlinkCareFromIntention:
         data = detail_response.json()
         assert len(data["linkedSomethings"]) == 0
 
-    def test_unlink_care_idempotent(self, client, mock_auth_headers, test_user, create_test_intention, create_test_something):
+    def test_unlink_care_idempotent(self, client, mock_auth_headers, test_user, create_test_intention_via_api, create_test_something):
         """Unlinking non-existent link is idempotent."""
-        intention_id = create_test_intention["id"]
+        intention_id = create_test_intention_via_api["id"]
         something_id = create_test_something["id"]
 
         # Unlink without linking first (should succeed)

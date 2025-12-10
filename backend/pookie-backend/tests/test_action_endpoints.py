@@ -17,8 +17,8 @@ def test_action_data():
 
 
 @pytest.fixture
-def create_test_action(client, mock_auth_headers, test_user, test_action_data):
-    """Create a test action and return its data."""
+def create_test_action_via_api(client, mock_auth_headers, test_user, test_action_data):
+    """Create a test action via API and return its JSON data."""
     response = client.post(
         "/api/v1/actions",
         json=test_action_data,
@@ -171,7 +171,7 @@ class TestListActions:
         data = response.json()
         assert isinstance(data, list)
 
-    def test_list_actions_with_data(self, client, mock_auth_headers, test_user, create_test_action):
+    def test_list_actions_with_data(self, client, mock_auth_headers, test_user, create_test_action_via_api):
         """List actions with existing data."""
         response = client.get(
             "/api/v1/actions",
@@ -182,7 +182,7 @@ class TestListActions:
         data = response.json()
         assert isinstance(data, list)
         assert len(data) >= 1
-        assert any(a["id"] == create_test_action["id"] for a in data)
+        assert any(a["id"] == create_test_action_via_api["id"] for a in data)
 
     def test_list_actions_ordered_by_date(self, client, mock_auth_headers, test_user):
         """Actions ordered by completed_at DESC."""
@@ -210,31 +210,30 @@ class TestListActions:
         recent_ids = [a["id"] for a in data[:2]]
         assert action2["id"] in recent_ids
 
-    def test_list_actions_user_isolation(self, client, test_user_token, mock_other_auth_headers, other_user):
+    def test_list_actions_user_isolation(self, client, test_user, create_test_action, mock_other_auth_headers, other_user):
         """Users only see their own actions."""
-        # User 1 creates action
-        response1 = client.post(
-            "/api/v1/actions",
-            json={"actionText": "User 1 action", "timeElapsed": 30},
-            headers=mock_auth_headers
+        # User 1 has an action (created directly in DB)
+        test_user_action = create_test_action(
+            user_id=test_user.id,
+            action_text="User 1 action",
+            time_elapsed=30
         )
-        assert response1.status_code == status.HTTP_201_CREATED
 
-        # User 2 lists actions
-        response2 = client.get(
+        # User 2 lists their actions
+        response = client.get(
             "/api/v1/actions",
             headers=mock_other_auth_headers
         )
-        assert response2.status_code == status.HTTP_200_OK
-        data2 = response2.json()
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
         # User 2 should not see User 1's action
-        assert not any(a["actionText"] == "User 1 action" for a in data2)
+        assert not any(a["actionText"] == "User 1 action" for a in data)
 
 
 class TestGetActionDetail:
-    def test_get_action_detail_success(self, client, mock_auth_headers, test_user, create_test_action):
+    def test_get_action_detail_success(self, client, mock_auth_headers, test_user, create_test_action_via_api):
         """Get action detail successfully."""
-        action_id = create_test_action["id"]
+        action_id = create_test_action_via_api["id"]
 
         response = client.get(
             f"/api/v1/actions/{action_id}",
@@ -244,7 +243,7 @@ class TestGetActionDetail:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["id"] == action_id
-        assert data["actionText"] == create_test_action["actionText"]
+        assert data["actionText"] == create_test_action_via_api["actionText"]
 
     def test_get_action_detail_not_found(self, client, mock_auth_headers, test_user):
         """Return 404 for non-existent action."""
@@ -255,30 +254,28 @@ class TestGetActionDetail:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_get_action_detail_wrong_user(self, client, test_user_token, mock_other_auth_headers, other_user):
+    def test_get_action_detail_wrong_user(self, client, test_user, create_test_action, mock_other_auth_headers, other_user):
         """Return 404 when accessing another user's action."""
-        # User 1 creates action
-        response1 = client.post(
-            "/api/v1/actions",
-            json={"actionText": "User 1 action", "timeElapsed": 45},
-            headers=mock_auth_headers
+        # User 1 has an action (created directly in DB)
+        test_user_action = create_test_action(
+            user_id=test_user.id,
+            action_text="User 1 action",
+            time_elapsed=45
         )
-        assert response1.status_code == status.HTTP_201_CREATED
-        action_id = response1.json()["id"]
 
         # User 2 tries to access it
-        response2 = client.get(
-            f"/api/v1/actions/{action_id}",
+        response = client.get(
+            f"/api/v1/actions/{test_user_action.id}",
             headers=mock_other_auth_headers
         )
 
-        assert response2.status_code == status.HTTP_404_NOT_FOUND
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 class TestDeleteAction:
-    def test_delete_action_success(self, client, mock_auth_headers, test_user, create_test_action):
+    def test_delete_action_success(self, client, mock_auth_headers, test_user, create_test_action_via_api):
         """Delete action successfully."""
-        action_id = create_test_action["id"]
+        action_id = create_test_action_via_api["id"]
 
         response = client.delete(
             f"/api/v1/actions/{action_id}",
@@ -305,9 +302,9 @@ class TestDeleteAction:
 
 
 class TestLinkActionToIntention:
-    def test_link_action_to_intention_success(self, client, mock_auth_headers, test_user, create_test_action, create_test_intention_for_action):
+    def test_link_action_to_intention_success(self, client, mock_auth_headers, test_user, create_test_action_via_api, create_test_intention_for_action):
         """Link action to intention successfully."""
-        action_id = create_test_action["id"]
+        action_id = create_test_action_via_api["id"]
         intention_id = create_test_intention_for_action["id"]
 
         response = client.post(
@@ -327,9 +324,9 @@ class TestLinkActionToIntention:
         assert len(data["linkedActions"]) >= 1
         assert any(a["id"] == action_id for a in data["linkedActions"])
 
-    def test_link_action_to_intention_duplicate(self, client, mock_auth_headers, test_user, create_test_action, create_test_intention_for_action):
+    def test_link_action_to_intention_duplicate(self, client, mock_auth_headers, test_user, create_test_action_via_api, create_test_intention_for_action):
         """Linking same action-intention twice doesn't create duplicate."""
-        action_id = create_test_action["id"]
+        action_id = create_test_action_via_api["id"]
         intention_id = create_test_intention_for_action["id"]
 
         # Link once
@@ -366,9 +363,9 @@ class TestLinkActionToIntention:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_link_intention_not_found(self, client, mock_auth_headers, test_user, create_test_action):
+    def test_link_intention_not_found(self, client, mock_auth_headers, test_user, create_test_action_via_api):
         """Return 404 for non-existent intention."""
-        action_id = create_test_action["id"]
+        action_id = create_test_action_via_api["id"]
 
         response = client.post(
             f"/api/v1/actions/{action_id}/link-intention/999999",

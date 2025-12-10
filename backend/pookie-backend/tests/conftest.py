@@ -189,3 +189,22 @@ def test_intention_data():
     }
 
 
+@pytest.fixture(scope="function")
+def create_test_action(db_session: Session):
+    """Factory fixture to create test actions."""
+    def _create_action(user_id: uuid.UUID, action_text: str = "Test action", time_elapsed: int = 60):
+        from app.models.action import Action
+        from datetime import datetime, timezone
+        action = Action(
+            user_id=user_id,
+            action_text=action_text,
+            time_elapsed=time_elapsed,
+            completed_at=datetime.now(timezone.utc)
+        )
+        db_session.add(action)
+        db_session.commit()
+        db_session.refresh(action)
+        return action
+    return _create_action
+
+
