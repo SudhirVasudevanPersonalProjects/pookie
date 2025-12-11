@@ -20,9 +20,9 @@
 - Apple Notes: Easy capture, impossible to find anything later
 - RAG tools: Generic retrieval, no personalization
 
-**What I Actually Needed:** An AI that learns MY personal semantics. Not just "what does 'running' mean in general?" but "what does 'running' mean to ME?" A system that gets smarter every time I correct it.
+**What I Actually Needed:** An AI that learns my personal semantics. Not just "what does 'running' mean in general?" but "why do I care for 'running'?" (Anime scenes, goals to lose weight, goals to increase ability to move).
 
-**So I built Pookie** - a personal LLM powered by centroid-based reinforcement learning that learns from user feedback in real-time.
+**So I built Pookie** - a personal LLM powered by centroid-based reinforcement learning that learns from user feedback in real-time, over time.
 
 ---
 
@@ -39,7 +39,7 @@ Pookie is a personalized knowledge companion with four core capabilities:
 - **K-means clustering** automatically organizes somethings into semantic circles
 - **LLM-generated names** for each circle (e.g., "Career Growth", "Creative Ideas")
 - **Centroid-based predictions** suggest which circle new somethings belong to
-- **Reinforcement learning loop**: When you correct predictions, centroids shift to match YOUR semantics
+- **Reinforcement learning loop**: When you correct predictions, centroids shift to match YOUR semantics (In-Progress)
 
 ### 3. 💬 Personalized Chat (RAG)
 - Chat with YOUR knowledge base, not generic ChatGPT
@@ -51,6 +51,7 @@ Pookie is a personalized knowledge companion with four core capabilities:
 - **Intentions**: High-level goals linked to circles of care
 - **Actions**: Concrete steps toward intentions
 - Track what you're doing and why it matters
+- Knowledge Graph Visualization (In-Progress)
 
 ---
 
