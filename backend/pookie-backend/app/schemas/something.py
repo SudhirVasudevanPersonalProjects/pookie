@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict, field_serializer
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List
 from enum import Enum
 from uuid import UUID
@@ -52,9 +52,16 @@ class SomethingResponse(SomethingBase):
         """Convert UUID to string for JSON serialization."""
         return str(user_id)
 
-    @field_serializer('created_at', 'updated_at')
-    def serialize_datetime(self, dt: datetime) -> str:
+    @field_serializer('created_at')
+    def serialize_datetime(self, created_at: datetime) -> str:
         """Ensure datetime is always ISO8601 string for JSON output."""
-        return dt.isoformat()
+        return created_at.isoformat(timespec="microseconds").replace("+00:00", "Z")
+
+    
+    @field_serializer('updated_at')
+    def serialize_datetime(self, updated_at: datetime) -> str:
+        """Ensure datetime is always ISO8601 string for JSON output."""
+        return updated_at.isoformat(timespec="microseconds").replace("+00:00", "Z")
+
 class SomethingUpdateMeaning(BaseModel):
     meaning: str

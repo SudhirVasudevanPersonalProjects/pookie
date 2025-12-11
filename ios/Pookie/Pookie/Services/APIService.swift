@@ -110,7 +110,7 @@ public class APIService {
         #if DEBUG
         print("[APIService] Response status: \(httpResponse.statusCode)")
         #endif
-
+    
         switch httpResponse.statusCode {
         case 201:
             #if DEBUG
@@ -555,9 +555,36 @@ public class APIService {
     /// - Returns: Configured JSONDecoder with iso8601 date strategy
     private func configuredDecoder() -> JSONDecoder {
         let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
+
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let dateString = try container.decode(String.self)
+
+            // Try ISO8601 with fractional seconds
+            let fractional = ISO8601DateFormatter()
+            fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+            if let date = fractional.date(from: dateString) {
+                return date
+            }
+
+            // Try ISO8601 without fractional seconds
+            let basic = ISO8601DateFormatter()
+            basic.formatOptions = [.withInternetDateTime]
+
+            if let date = basic.date(from: dateString) {
+                return date
+            }
+
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Invalid ISO8601 date: \(dateString)"
+            )
+        }
+
         return decoder
     }
+
 }
 
 // MARK: - API Errors
