@@ -12,6 +12,9 @@ from app.models.circle import Circle
 from app.models.something import Something
 from app.models.something_circle import SomethingCircle
 
+# Import embedding_service at module level to avoid circular dependency
+from app.services.embedding_service import embedding_service
+
 
 class CentroidService:
     """
@@ -58,7 +61,8 @@ class CentroidService:
         self,
         circle_id: int,
         new_embedding: List[float],
-        db: Session
+        db: Session,
+        commit: bool = True
     ) -> None:
         """
         Incrementally update centroid when something is added.
@@ -70,6 +74,7 @@ class CentroidService:
             circle_id: Circle to update
             new_embedding: 384-dim embedding of newly added something
             db: Database session
+            commit: Whether to commit the transaction (default True for backward compatibility)
         """
         circle = db.query(Circle).filter(Circle.id == circle_id).first()
         if not circle:
@@ -102,13 +107,15 @@ class CentroidService:
             normalized = updated / np.linalg.norm(updated)
             circle.centroid_embedding = normalized.tolist()
 
-        db.commit()
+        if commit:
+            db.commit()
 
     def update_centroid_remove(
         self,
         circle_id: int,
         removed_embedding: List[float],
-        db: Session
+        db: Session,
+        commit: bool = True
     ) -> None:
         """
         Incrementally update centroid when something is removed.
@@ -122,6 +129,7 @@ class CentroidService:
             circle_id: Circle to update
             removed_embedding: 384-dim embedding of removed something
             db: Database session
+            commit: Whether to commit the transaction (default True for backward compatibility)
         """
         circle = db.query(Circle).filter(Circle.id == circle_id).first()
         if not circle:
@@ -148,7 +156,8 @@ class CentroidService:
             normalized = updated / np.linalg.norm(updated)
             circle.centroid_embedding = normalized.tolist()
 
-        db.commit()
+        if commit:
+            db.commit()
 
     def compute_circle_similarities(
         self,
@@ -214,8 +223,8 @@ class CentroidService:
             top_k: Maximum predictions to return
 
         Returns:
-            List of dicts with circleId, circleName, confidence
-            Example: [{"circleId": 5, "circleName": "Fitness", "confidence": 0.89}]
+            List of dicts with circle_id, circle_name, confidence
+            Example: [{"circle_id": 5, "circle_name": "Fitness", "confidence": 0.89}]
         """
         # Find similar circles
         similarities = self.compute_circle_similarities(
@@ -230,8 +239,8 @@ class CentroidService:
         for circle_id, circle_name, score in similarities:
             if score >= threshold:
                 predictions.append({
-                    "circleId": circle_id,
-                    "circleName": circle_name,
+                    "circle_id": circle_id,
+                    "circle_name": circle_name,
                     "confidence": round(score, 2)
                 })
 
@@ -258,12 +267,9 @@ class CentroidService:
             top_k: Maximum predictions to return
 
         Returns:
-            List of dicts with circleId, circleName, confidence
+            List of dicts with circle_id, circle_name, confidence
             Empty list if something not found or has no content
         """
-        # Import here to avoid circular dependency
-        from app.services.embedding_service import embedding_service
-
         something = db.query(Something).filter(
             Something.id == something_id,
             Something.user_id == user_id

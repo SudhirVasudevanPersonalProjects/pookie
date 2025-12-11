@@ -134,7 +134,7 @@ development_status:
   # Deployment: Render backend, iOS TestFlight
   # Docs: README with centroid RL architecture, recruiting demo script
   # Effort: ~6 hours | Priority: MEDIUM | Deliverable: Deployed MVP
-  mvp-5-deploy-and-ml-demo-documentation: ready-for-dev
+  mvp-5-deploy-and-ml-demo-documentation: review
 
   epic-mvp-retrospective: optional
 

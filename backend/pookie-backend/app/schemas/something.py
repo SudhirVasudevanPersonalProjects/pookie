@@ -13,11 +13,11 @@ class ContentType(str, Enum):
 
 
 class SomethingBase(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(use_enum_values=True)
 
     content: Optional[str] = None
-    content_type: ContentType = Field(alias="contentType", default=ContentType.text)
-    media_url: Optional[str] = Field(alias="mediaUrl", default=None)
+    content_type: ContentType = Field(default=ContentType.text, serialization_alias="contentType")
+    media_url: Optional[str] = Field(default=None, serialization_alias="mediaUrl")
 
 
 class SomethingCreate(SomethingBase):
@@ -26,30 +26,35 @@ class SomethingCreate(SomethingBase):
 
 class CirclePrediction(BaseModel):
     """Circle prediction from centroid similarity."""
-    model_config = ConfigDict(populate_by_name=True)
 
-    circle_id: int = Field(alias="circleId")
-    circle_name: str = Field(alias="circleName")
+    circle_id: int = Field(serialization_alias="circleId")
+    circle_name: str = Field(serialization_alias="circleName")
     confidence: float
 
 
 class SomethingResponse(SomethingBase):
-    model_config = ConfigDict(populate_by_name=True, from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        use_enum_values=True
+    )
 
     id: int
-    user_id: UUID | str = Field(alias="userId")
+    user_id: UUID | str = Field(serialization_alias="userId")
     meaning: Optional[str] = None
-    is_meaning_user_edited: bool = Field(alias="isMeaningUserEdited", default=False)
-    novelty_score: Optional[float] = Field(alias="noveltyScore", default=None, ge=0.0, le=1.0)
-    suggested_circles: List[CirclePrediction] = Field(alias="suggestedCircles", default_factory=list)
-    created_at: datetime = Field(alias="createdAt")
-    updated_at: datetime = Field(alias="updatedAt")
+    is_meaning_user_edited: bool = Field(default=False, serialization_alias="isMeaningUserEdited")
+    novelty_score: Optional[float] = Field(default=None, ge=0.0, le=1.0, serialization_alias="noveltyScore")
+    suggested_circles: List[CirclePrediction] = Field(default_factory=list, serialization_alias="suggestedCircles")
+    created_at: datetime = Field(serialization_alias="createdAt")
+    updated_at: datetime = Field(serialization_alias="updatedAt")
 
     @field_serializer('user_id')
     def serialize_user_id(self, user_id: UUID | str) -> str:
         """Convert UUID to string for JSON serialization."""
         return str(user_id)
 
-
+    @field_serializer('created_at', 'updated_at')
+    def serialize_datetime(self, dt: datetime) -> str:
+        """Ensure datetime is always ISO8601 string for JSON output."""
+        return dt.isoformat()
 class SomethingUpdateMeaning(BaseModel):
     meaning: str

@@ -189,16 +189,17 @@ struct StreamingBubble: View {
 
                 // Typing indicator
                 HStack(spacing: 4) {
-                    ForEach(0..<3) { index in
-                        Circle()
-                            .fill(Color.gray)
+                    ForEach(0..<3, id: \.self) { index in
+                        SwiftUI.Circle()
                             .frame(width: 6, height: 6)
+                            .foregroundStyle(Color.gray.opacity(0.6))
+                            .scaleEffect(1.0)
                             .opacity(0.6)
                             .animation(
-                                .easeInOut(duration: 0.6)
-                                .repeatForever()
-                                .delay(Double(index) * 0.2),
-                                value: text.count
+                                Animation.easeInOut(duration: 0.6)
+                                    .repeatForever()
+                                    .delay(Double(index) * 0.2),
+                                value: text
                             )
                     }
                 }

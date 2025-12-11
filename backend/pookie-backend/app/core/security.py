@@ -115,13 +115,50 @@ def _extract_user_id(user) -> Optional[str]:
     return None
 
 
+def _extract_user_email(user) -> Optional[str]:
+    """
+    Safely extract email from Supabase user object.
+
+    Handles multiple response formats from different Supabase SDK versions:
+    - Direct object with .email attribute
+    - Dict with "email" key
+    - Nested user object (user.user.email or user["user"]["email"])
+
+    Args:
+        user: User object or dict from Supabase auth.get_user()
+
+    Returns:
+        str: Email if found, None otherwise
+    """
+    # Try dict format first
+    if isinstance(user, dict):
+        if "email" in user:
+            return user["email"]
+        if "user" in user and isinstance(user["user"], dict):
+            return user["user"].get("email")
+
+    # Try object format
+    if hasattr(user, "email"):
+        return user.email
+
+    # Try nested object format
+    if hasattr(user, "user"):
+        nested_user = user.user
+        if isinstance(nested_user, dict):
+            return nested_user.get("email")
+        elif hasattr(nested_user, "email"):
+            return nested_user.email
+
+    return None
+
+
 async def get_current_user_id(
     user: dict = Security(get_current_user)
 ) -> str:
     """
-    Extract user ID from authenticated user.
+    Extract user ID from authenticated user and ensure user exists in database.
 
-    Convenience function for endpoints that only need user_id.
+    Implements "just-in-time" user provisioning: creates user record on first auth.
 
     Args:
         user: Authenticated user from get_current_user dependency
@@ -130,8 +167,13 @@ async def get_current_user_id(
         str: UUID of authenticated user
 
     Raises:
-        HTTPException: 500 if user ID cannot be extracted
+        HTTPException: 500 if user ID cannot be extracted or user creation fails
     """
+    from sqlalchemy.orm import Session
+    from app.core.database import get_db
+    from app.models.user import User
+    from uuid import UUID
+
     user_id = _extract_user_id(user)
 
     if not user_id:
@@ -140,5 +182,43 @@ async def get_current_user_id(
             status_code=500,
             detail="Failed to extract user information"
         )
+
+    # Extract email from user object
+    email = _extract_user_email(user)
+    if not email:
+        logger.error(f"Failed to extract email from user object: {type(user)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to extract user email"
+        )
+
+    # Ensure user exists in database (just-in-time provisioning)
+    # This is needed because Supabase manages authentication separately
+    # from our application database
+    db_gen = get_db()
+    db = next(db_gen)
+    try:
+        user_uuid = UUID(user_id)
+
+        # Check if user exists
+        existing_user = db.query(User).filter(User.id == user_uuid).first()
+
+        if not existing_user:
+            # Create user record with ID from JWT token
+            new_user = User(id=user_uuid, email=email)
+            db.add(new_user)
+            db.commit()
+            logger.info(f"Created new user record for {user_id} ({email})")
+        else:
+            logger.debug(f"User {user_id} already exists in database")
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to ensure user exists in database: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to provision user account"
+        )
+    finally:
+        db.close()
 
     return user_id

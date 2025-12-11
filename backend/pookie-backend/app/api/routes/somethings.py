@@ -1,5 +1,4 @@
-"""
-Somethings CRUD API endpoints.
+"""Somethings CRUD API endpoints.
 
 Story 2.4: Provides RESTful API for creating, reading, updating, and deleting somethings
 with automatic embedding generation and meaning generation.
@@ -109,11 +108,7 @@ async def create_something(
                 top_k=3
             )
             suggested_circles = [
-                CirclePrediction(
-                    circleId=p["circleId"],
-                    circleName=p["circleName"],
-                    confidence=p["confidence"]
-                )
+                CirclePrediction(**p)  # Unpack dict directly since keys match field names
                 for p in predictions
             ]
             logger.info(f"Predicted {len(suggested_circles)} circles for something {db_something.id}")
@@ -121,10 +116,11 @@ async def create_something(
             # Graceful degradation - don't fail creation if prediction fails
             logger.warning(f"Circle prediction failed for something {db_something.id}: {str(e)}")
 
-        # Build response with suggestions
+        # Build response with suggestions using model_validate
+        # serialization_alias in the schema handles snake_case to camelCase output
         response = SomethingResponse.model_validate(db_something)
         response.suggested_circles = suggested_circles
-
+        
         return response
 
     except ValueError as e:

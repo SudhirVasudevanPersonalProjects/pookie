@@ -17,80 +17,20 @@ struct CaptureView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 16) {
-                // Text editor with placeholder
-                TextEditor(text: $viewModel.somethingText)
-                    .frame(minHeight: 200)
-                    .padding(8)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(8)
-                    .overlay(
-                        Group {
-                            if viewModel.somethingText.isEmpty {
-                                Text("What's on your mind?")
-                                    .foregroundColor(.secondary)
-                                    .padding(.top, 16)
-                                    .padding(.leading, 12)
-                                    .allowsHitTesting(false)
-                            }
-                        },
-                        alignment: .topLeading
-                    )
-                    .accessibilityLabel("Something text input")
-                    .accessibilityHint("Type your thought or idea here")
-                    .accessibilityValue(viewModel.somethingText.isEmpty ? "Empty" : viewModel.somethingText)
+            mainContent
+        }
+    }
 
-                // Error or success message only
-                if let error = viewModel.error {
-                    HStack {
-                        Image(systemName: "exclamationmark.circle.fill")
-                            .foregroundColor(.red)
-                        Text(error)
-                            .font(.subheadline)
-                            .foregroundColor(.red)
-                    }
-                    .padding()
-                    .background(Color.red.opacity(0.1))
-                    .cornerRadius(8)
-                } else if let success = viewModel.successMessage {
-                    HStack {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                        Text(success)
-                            .font(.subheadline)
-                            .foregroundColor(.green)
-                    }
-                    .padding()
-                    .background(Color.green.opacity(0.1))
-                    .cornerRadius(8)
-                    .transition(.opacity.combined(with: .scale))
-                }
+    // MARK: - View Components
 
-                // Save button
-                Button(action: {
-                    // Dismiss keyboard before saving
-                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-
-                    Task {
-                        await viewModel.saveSomething()
-                    }
-                }) {
-                    if viewModel.isSaving {
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
-                            .accessibilityLabel("Saving")
-                    } else {
-                        Text("Save")
-                            .frame(maxWidth: .infinity)
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(!viewModel.canSave)
-                .accessibilityLabel(viewModel.canSave ? "Save something" : "Save button disabled")
-                .accessibilityHint(viewModel.canSave ? "Saves your thought" : "Enter text to enable save")
-
-                Spacer()
-            }
+    private var mainContent: some View {
+        VStack(spacing: 16) {
+            textEditor
+            messageView
+            suggestedCirclesIfAvailable
+            saveButton
+            Spacer()
+        }
             .padding()
             .navigationTitle("Capture")
             .toolbar {
@@ -122,7 +62,166 @@ struct CaptureView: View {
                 }
             }
             .animation(.easeInOut(duration: 0.3), value: viewModel.successMessage)
+            .animation(.easeInOut(duration: 0.3), value: viewModel.lastCreatedSomething)
+    }
+
+    private var textEditor: some View {
+        TextEditor(text: $viewModel.somethingText)
+            .frame(minHeight: 200)
+            .padding(8)
+            .background(Color(.systemGray6))
+            .cornerRadius(8)
+            .overlay(placeholderText, alignment: .topLeading)
+            .accessibilityLabel("Something text input")
+            .accessibilityHint("Type your thought or idea here")
+            .accessibilityValue(viewModel.somethingText.isEmpty ? "Empty" : viewModel.somethingText)
+    }
+
+    @ViewBuilder
+    private var placeholderText: some View {
+        if viewModel.somethingText.isEmpty {
+            Text("What's on your mind?")
+                .foregroundColor(.secondary)
+                .padding(.top, 16)
+                .padding(.leading, 12)
+                .allowsHitTesting(false)
         }
+    }
+
+    @ViewBuilder
+    private var messageView: some View {
+        if let error = viewModel.error {
+            MessageBanner(type: .error, message: error)
+        } else if let success = viewModel.successMessage {
+            MessageBanner(type: .success, message: success)
+        }
+    }
+
+    @ViewBuilder
+    private var suggestedCirclesIfAvailable: some View {
+        if let something = viewModel.lastCreatedSomething,
+        !something.suggestedCircles.isEmpty {
+            SuggestedCirclesView(predictions: Array(viewModel.lastCreatedSomething!.suggestedCircles.prefix(3)))
+        }
+    }
+
+    private var saveButton: some View {
+        Button(action: saveAction) {
+            saveButtonLabel
+        }
+        .buttonStyle(.borderedProminent)
+        .disabled(!viewModel.canSave)
+        .accessibilityLabel(viewModel.canSave ? "Save something" : "Save button disabled")
+        .accessibilityHint(viewModel.canSave ? "Saves your thought" : "Enter text to enable save")
+    }
+
+    private func saveAction() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        Task {
+            await viewModel.saveSomething()
+        }
+    }
+
+    @ViewBuilder
+    private var saveButtonLabel: some View {
+        if viewModel.isSaving {
+            ProgressView()
+                .frame(maxWidth: .infinity)
+                .accessibilityLabel("Saving")
+        } else {
+            Text("Save")
+                .frame(maxWidth: .infinity)
+        }
+    }
+}
+
+// MARK: - Message Banner
+
+struct MessageBanner: View {
+    enum MessageType {
+        case error
+        case success
+
+        var icon: String {
+            switch self {
+            case .error: return "exclamationmark.circle.fill"
+            case .success: return "checkmark.circle.fill"
+            }
+        }
+
+        var color: Color {
+            switch self {
+            case .error: return .red
+            case .success: return .green
+            }
+        }
+    }
+
+    let type: MessageType
+    let message: String
+
+    var body: some View {
+        HStack {
+            Image(systemName: type.icon)
+                .foregroundColor(type.color)
+            Text(message)
+                .font(.subheadline)
+                .foregroundColor(type.color)
+        }
+        .padding()
+        .background(type.color.opacity(0.1))
+        .cornerRadius(8)
+        .transition(.opacity.combined(with: .scale))
+    }
+}
+
+// MARK: - Suggested Circles Subview
+
+struct SuggestedCirclesView: View {
+    let predictions: [CirclePrediction]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Predicted Circles:")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundColor(.secondary)
+
+            ForEach(predictions, id: \.circleId) { prediction in
+                predictionRow(for: prediction)
+            }
+        }
+        .padding()
+        .background(Color.blue.opacity(0.05))
+        .cornerRadius(12)
+        .transition(.move(edge: .bottom).combined(with: .opacity))
+    }
+
+    private func predictionRow(for prediction: CirclePrediction) -> some View {
+        HStack {
+            Image(systemName: "circle.fill")
+                .font(.caption)
+                .foregroundColor(.blue.opacity(0.6))
+
+            Text(prediction.circleName)
+                .font(.body)
+
+            Spacer()
+
+            confidenceBadge(for: prediction.confidence)
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func confidenceBadge(for confidence: Double) -> some View {
+        let percentage = Int(confidence * 100)
+        return Text("\(percentage)%")
+            .font(.caption)
+            .foregroundColor(.secondary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Color.blue.opacity(0.1))
+            .cornerRadius(8)
     }
 }
 

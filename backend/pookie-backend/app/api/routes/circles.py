@@ -16,9 +16,13 @@ from app.models.something import Something
 from app.models.something_circle import SomethingCircle
 from app.services.centroid_service import centroid_service
 from app.services.embedding_service import embedding_service
+from app.services.vector_service import vector_service
 from loguru import logger
 
 router = APIRouter()
+
+# Constants
+MAX_PREDICTION_RESULTS = 50  # Maximum predictions to return
 
 
 @router.post(
@@ -102,18 +106,25 @@ async def assign_something_to_circle(
             confidence_score=1.0  # User assignment = 100% confidence
         )
         db.add(assignment)
-        db.commit()
 
-        logger.info(f"Assigned something {something_id} to circle {circle_id} (user_assigned=True)")
+        # Validate something has non-empty content
+        if not something.content or not something.content.strip():
+            logger.warning(f"Something {something_id} has empty content, cannot assign to circle")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot assign something with empty content to circle. Content is required for centroid calculation."
+            )
 
-        # Update circle centroid with something's embedding
+        # Update circle centroid with something's embedding (in same transaction)
         # Generate embedding if we don't have it
-        if something.content and something.content.strip():
-            embedding = embedding_service.generate_embedding(something.content)
-            centroid_service.update_centroid_add(circle_id, embedding, db)
-            logger.info(f"Updated centroid for circle {circle_id} after assignment")
-        else:
-            logger.warning(f"Something {something_id} has no content for embedding, skipping centroid update")
+        embedding = embedding_service.generate_embedding(something.content)
+        # Pass commit=False to keep transaction open
+        centroid_service.update_centroid_add(circle_id, embedding, db, commit=False)
+        logger.info(f"Updated centroid for circle {circle_id} after assignment")
+
+        # Commit both assignment and centroid update atomically
+        db.commit()
+        logger.info(f"Assigned something {something_id} to circle {circle_id} (user_assigned=True)")
 
         return None  # 204 No Content
 
@@ -206,24 +217,27 @@ async def remove_something_from_circle(
                 detail=f"Something {something_id} is not assigned to circle {circle_id}"
             )
 
-        # Get embedding before deleting
+        # Get embedding for centroid update
+        # Note: In production, store embeddings in Something table to avoid regeneration
+        # For MVP, we regenerate (100-200ms acceptable for remove operations)
+        embedding = None
         if something.content and something.content.strip():
             embedding = embedding_service.generate_embedding(something.content)
-        else:
-            embedding = None
 
         # Delete assignment
         db.delete(assignment)
-        db.commit()
 
-        logger.info(f"Removed something {something_id} from circle {circle_id}")
-
-        # Update circle centroid (remove this something's influence)
+        # Update circle centroid (remove this something's influence) - same transaction
         if embedding is not None:
-            centroid_service.update_centroid_remove(circle_id, embedding, db)
+            # Pass commit=False to keep transaction open
+            centroid_service.update_centroid_remove(circle_id, embedding, db, commit=False)
             logger.info(f"Updated centroid for circle {circle_id} after removal")
         else:
             logger.warning(f"Something {something_id} has no content for embedding, skipping centroid update")
+
+        # Commit both deletion and centroid update atomically
+        db.commit()
+        logger.info(f"Removed something {something_id} from circle {circle_id}")
 
         return None  # 204 No Content
 
@@ -293,55 +307,55 @@ async def get_predict_similar(
             return {"suggestions": []}
 
         # Limit top_k to reasonable range
-        top_k = min(max(1, top_k), 50)
+        top_k = min(max(1, top_k), MAX_PREDICTION_RESULTS)
 
-        # Use centroid to find similar somethings
-        # This is a simplified version - full implementation would use FAISS
-        # For MVP-1, we return basic similarity using centroid service
-        logger.info(f"Finding {top_k} somethings similar to circle {circle_id} centroid")
+        # Use FAISS vector search with circle centroid as query
+        logger.info(f"Finding {top_k} somethings similar to circle {circle_id} centroid using FAISS")
 
-        # Get all user's somethings and compute similarity
-        # In production, this would use FAISS for efficiency
-        somethings = (
-            db.query(Something)
-            .filter(Something.user_id == user_uuid)
+        # Get IDs of somethings already in this circle
+        assigned_something_ids = set(
+            row[0] for row in db.query(SomethingCircle.something_id)
+            .filter(SomethingCircle.circle_id == circle_id)
             .all()
         )
 
+        # Search FAISS index using centroid
+        # Request more than top_k to account for filtering
+        search_limit = min(top_k * 3, 150)  # Over-fetch to compensate for filtering
+        faiss_results = await vector_service.search_similar(
+            circle.centroid_embedding,
+            top_k=search_limit
+        )
+
+        # Filter and format results
         suggestions = []
-        for something in somethings:
-            if something.content and something.content.strip():
-                # Check if already in circle
-                existing = (
-                    db.query(SomethingCircle)
-                    .filter(
-                        SomethingCircle.circle_id == circle_id,
-                        SomethingCircle.something_id == something.id
-                    )
-                    .first()
-                )
-                if existing:
-                    continue  # Skip items already in circle
+        for something_id, similarity in faiss_results:
+            # Skip if already in circle
+            if something_id in assigned_something_ids:
+                continue
 
-                # Compute similarity
-                embedding = embedding_service.generate_embedding(something.content)
-                import numpy as np
-                centroid = np.array(circle.centroid_embedding)
-                emb = np.array(embedding)
-                emb_normalized = emb / np.linalg.norm(emb)
-                similarity = float(np.dot(emb_normalized, centroid))
+            # Fetch something and verify ownership
+            something = (
+                db.query(Something)
+                .filter(Something.id == something_id, Something.user_id == user_uuid)
+                .first()
+            )
 
-                suggestions.append({
-                    "somethingId": something.id,
-                    "content": something.content,
-                    "similarity": round(similarity, 3)
-                })
+            # Skip if not found or not owned by user
+            if not something:
+                continue
 
-        # Sort by similarity and take top_k
-        suggestions.sort(key=lambda x: x["similarity"], reverse=True)
-        suggestions = suggestions[:top_k]
+            suggestions.append({
+                "somethingId": something.id,
+                "content": something.content,
+                "similarity": round(float(similarity), 3)
+            })
 
-        logger.info(f"Returning {len(suggestions)} suggestions for circle {circle_id}")
+            # Stop once we have enough suggestions
+            if len(suggestions) >= top_k:
+                break
+
+        logger.info(f"Returning {len(suggestions)} FAISS-based suggestions for circle {circle_id}")
 
         return {"suggestions": suggestions}
 
