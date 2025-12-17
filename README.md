@@ -1,7 +1,7 @@
 # 🧠 Pookie
 
 **Personal LLM with Centroid-Based Reinforcement Learning**
-
+YOUTUBE SHOWCASE: https://youtu.be/wq6wvbSZ264
 [![iOS](https://img.shields.io/badge/iOS-17%2B-blue.svg)](https://www.apple.com/ios/)
 [![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)](https://swift.org)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
